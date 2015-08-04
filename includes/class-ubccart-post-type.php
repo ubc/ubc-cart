@@ -74,7 +74,7 @@ class UBCCARTCPT {
 	/**
 	 * User defined functions to populate admin columns.
 	 *
-	 * @var array $custom_populate_columns User functions to populate columns. 
+	 * @var array $custom_populate_columns User functions to populate columns.
 	 */
 	public $custom_populate_columns;
 	/**
@@ -235,7 +235,7 @@ class UBCCARTCPT {
 	 * @param string $action Name of the action.
 	 * @param string $function Function to hook that will run on action.
 	 * @param integet $priority Order in which to execute the function, relation to other functions hooked to this action.
-	 * @param integer $accepted_args The number of arguments the function accepts. 
+	 * @param integer $accepted_args The number of arguments the function accepts.
 	 */
 	function add_action( $action, $function, $priority = 10, $accepted_args = 1 ) {
 		// Pass variables into WordPress add_action function
@@ -649,7 +649,7 @@ class UBCCARTCPT {
 						// Foreach term create an option field...
 						foreach ( $terms as $term ) {
 							// ...if filtered by this term make it selected.
-							if ( isset( $_GET[ $tax_slug ] ) && $_GET[ $tax_slug ] === $term->slug ) {
+							if ( isset( $_GET[ esc_html($tax_slug) ] ) && $_GET[ esc_html($tax_slug) ] === $term->slug ) {
 								printf( '<option value="%s" selected="selected">%s (%s)</option>', $term->slug, $term->name, $term->count );
 							// ...create option for taxonomy.
 							} else {
