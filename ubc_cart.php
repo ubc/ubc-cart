@@ -24,15 +24,17 @@ if (! class_exists("GFForms")) {
 }
 else{
 	// Add settings link on plugin page
-	function cart_plugin_settings_link($links) { 
-  		$settings_link = '<a href="admin.php?page=ubc_cart_options">Settings</a>'; 
-  		array_unshift($links, $settings_link); 
-  		return $links; 
+	function cart_plugin_settings_link($links) {
+  		$settings_link = '<a href="admin.php?page=ubc_cart_options">Settings</a>';
+  		array_unshift($links, $settings_link);
+  		return $links;
 	}
- 
-	$plugin = plugin_basename(__FILE__); 
+
+	$plugin = plugin_basename(__FILE__);
 	add_filter("plugin_action_links_$plugin", 'cart_plugin_settings_link' );
 }
+
+add_filter("plugins_loaded", 'UBCCart' );
 
 // -- Class Name : UBC_CART
 // -- Purpose : 0. Activates session manager
@@ -42,9 +44,9 @@ else{
 // --           4. Creates merge tag in GF using filters
 // --           5. Options and Settings as a Gravity Forms Addon
 // -- Created On : March 21st 2015
-class UBC_CART extends GFAddOn 
+class UBC_CART extends GFAddOn
 {
-    
+
     public $session;
     public $admin_settings;
     public $cart_fields;
@@ -53,15 +55,15 @@ class UBC_CART extends GFAddOn
     public static $merge_tag_shipping = '{ubccart_shipping}';
     public static $merge_tag_shippingint = '{ubccart_shippingint}';
 
-    // -- Function Name : __construct    
+    // -- Function Name : __construct
     // -- Params : None
     // -- Purpose : New Instance
     function __construct()
     {
-        
+
         //error_reporting(E_ERROR | E_WARNING | E_PARSE);
         //ini_set('display_errors', 'On');
-        
+
         $this->setup_constants();
 
         $this->includes();
@@ -96,7 +98,7 @@ class UBC_CART extends GFAddOn
         //Options & Settings
         $this->admin_settings  = new GFCartAddOn();
     }
-    
+
     // -- Function Name : show_ubc_cart
     // -- Params : $atts
     // -- Purpose : Use create_table() function as shortcode
@@ -105,18 +107,18 @@ class UBC_CART extends GFAddOn
 	$this->cart_script(true);
         return '<div id="cart-details">'.$this->create_table().'</div>';
     }
-    
+
 
     // -- Function Name : add_to_cart_button
     // -- Params : $content
     // -- Purpose : Add the Add to Cart Button to single post display
-	function add_to_cart_button( $content ) {		
+	function add_to_cart_button( $content ) {
 		global $post;
 		if( (is_single()) && $post->post_type == "ubc_product") {
 			//**********************************
 			//*    CART OPTIONS                *
 			//**********************************
-			$cartoptions = get_option('ubc_cart_options'); 
+			$cartoptions = get_option('ubc_cart_options');
 			$filter_id = $cartoptions['filter'];
 			if (has_term( $filter_id, 'ubc_product_type' ,$post->ID))
 				$content = the_post_thumbnail( array(150,150)  ).$content . '<button style="color: white;height:30px;background-color: #49afcd;background-image: linear-gradient(to bottom, #5bc0de, #2f96b4);background-repeat: repeat-x;border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);border-radius: 4px; color: white;text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);" href="#" class="button-primary btn-info" onclick="addtocart(this,'.$post->ID.')"><i class="icon-shopping-cart"></i> Add to Cart</button>'.'<button style="display:inline-block;margin-left:20px;color: white;height:30px;background-color: #49afcd;background-image: linear-gradient(to bottom, #5bc0de, #2f96b4);background-repeat: repeat-x;border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);border-radius: 4px; color: white;text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);" onclick="window.location.href=\''.site_url('/checkout/').'\'" class="button-primary btn-info"><i class="icon-circle-arrow-right"></i> Go to Checkout</button>';
@@ -137,31 +139,31 @@ class UBC_CART extends GFAddOn
 
         // Save to DB as serialized array
         add_filter("gform_save_field_value", array(&$this, 'ubc_cart_get_value'), 10, 4);
-        
+
         //Read from cart as serialized array and create entry
         //add_filter("gform_entry_field_value", array(&$this, 'ubc_cart_field_display'), 10, 4);
-        
+
         //Fix labels in notification
         add_filter('gform_pre_submission', array(&$this, 'ubc_cart_field_email'), 10, 3 );
-        
+
         // Adds the input area to the external side - used for the editor and fe display.
         add_action("gform_field_input" , array(&$this, 'ubc_cart_field_input'), 9, 5 );
-        
+
         // Now we execute some javascript technicalitites for the field to load correctly
         add_action("gform_editor_js", array(&$this, 'ubc_cart_gform_editor_js') );
-        
+
         // Set default values
         add_action("gform_editor_js_set_default_values", array(&$this, 'set_defaults'));
-        
+
         // Add a custom setting to the cart advanced field
         add_action("gform_field_advanced_settings" , array(&$this, 'ubc_cart_settings') , 10, 2 );
 
         // Reset Cart after form submission
         add_action("gform_after_submission" , array(&$this, 'ubc_cart_reset') , 10, 2 );
-        
+
         //Filter to add a new tooltip
         add_filter('gform_tooltips', array(&$this, 'ubc_cart_add_tooltips'));
-        
+
         // Add a custom class to the field li
         add_action("gform_field_css_class", array(&$this, 'custom_class'), 10, 3);
 
@@ -170,7 +172,7 @@ class UBC_CART extends GFAddOn
         add_filter('gform_pre_validation', array($this, 'maybe_replace_subtotal_merge_tag_submission' ) );
         add_filter('gform_admin_pre_render', array($this, 'add_merge_tags' ) );
     }
-    
+
     // -- Function Name : add_ajax_actions
     // -- Params : None
     // -- Purpose : All ajax actions.
@@ -195,16 +197,16 @@ class UBC_CART extends GFAddOn
         //Delete or reduce quantity of Cart item
         add_action('wp_ajax_cart_delete_item_action', array(&$this, 'cart_delete_item_action_ajax_handler' ));
         add_action('wp_ajax_nopriv_cart_delete_item_action', array(&$this, 'cart_delete_item_action_ajax_handler' ));
-        
+
         //Settings switch GF form used as checkout
         add_action('wp_ajax_cart_switch_form_action', array(&$this, 'cart_switch_form_action_ajax_handler' ));
         add_action('wp_ajax_nopriv_cart_switch_form_action', array(&$this, 'cart_switch_form_action_ajax_handler' ));
-        
+
         //Switch tax term used to filter items
         add_action('wp_ajax_cart_filter_action', array(&$this, 'cart_filter_action_ajax_handler' ));
         add_action('wp_ajax_nopriv_cart_filter_action', array(&$this, 'cart_filter_action_ajax_handler' ));
     }
-    
+
     // -- Function Name : cart_script
     // -- Params : None
     // -- Purpose : Add plugin JS (both Frontend and Admin). All ajax actions nonced.
@@ -256,11 +258,11 @@ class UBC_CART extends GFAddOn
 
     // -- Function Name : cart_filter_action_ajax_handler
     // -- Params : None
-    // -- Purpose : Toggles the UBC Product Type taxonomy filter 
+    // -- Purpose : Toggles the UBC Product Type taxonomy filter
     // -- used to enable/disable Add to btn as well as filter in archive page
     public function cart_filter_action_ajax_handler()
     {
-        $filter = $_POST['js_data_for_php']; 
+        $filter = $_POST['js_data_for_php'];
         //**********************************
         //*    CART OPTIONS                *
         //**********************************;
@@ -273,8 +275,8 @@ class UBC_CART extends GFAddOn
         echo $data_for_javascript;
         die();
     }
-    
-    
+
+
     // -- Function Name : cart_switch_form_action_ajax_handler
     // -- Params : None
     // -- Purpose : Stores the Gravity Form id that is used on the check out page
@@ -294,7 +296,7 @@ class UBC_CART extends GFAddOn
         echo $data_for_javascript;
         die();
     }
-    
+
     // -- Function Name : set_chkout_page
     // -- Params : None
     // -- Purpose : Gets Form id to be used and switches the shortcode on the page
@@ -307,7 +309,7 @@ class UBC_CART extends GFAddOn
         $formid = $cartoptions['formid'];
         //Set shortcode string here
         $form_shortcode = '[gravityform id="'.$formid.'" title="true" description="true"]';
-        
+
         $page = get_page_by_title('Checkout');
         if (is_null($page)) {
             //create the page
@@ -329,7 +331,7 @@ class UBC_CART extends GFAddOn
             wp_update_post($page );
         }
     }
-    
+
     // -- Function Name : cart_delete_item_action_ajax_handler
     // -- Params : None
     // -- Purpose : Either deletes the item from cart if quantity is 1 or reduces quantity by 1
@@ -338,7 +340,7 @@ class UBC_CART extends GFAddOn
         $cart = $this->session->get('ubc-cart');
         $jsaction = '';
         $quantcol = -100;
-        
+
         //** Check if id exists in cart then **check for single
         if ($cart[$itemnum-1]['prodquantity'] > 1) {
             $cart[$itemnum-1]['prodquantity'] --;
@@ -351,19 +353,19 @@ class UBC_CART extends GFAddOn
             //Remove itemnum from cart - remember index starts at 1
             array_splice($cart,($itemnum-1),1);
             $jsaction = 'remove';
-        }        
+        }
         $this->session->set('ubc-cart',$cart);
         $data_for_javascript = $jsaction.'*'.$quantcol.'*'.$itemnum;
         echo $data_for_javascript.'*'.$this->create_table();
         die();
     }
-    
+
     // -- Function Name : cart_columns_action_ajax_handler
     // -- Params : None
     // -- Purpose : Sets columns according to drag & drop interface from settings page
     public function cart_columns_action_ajax_handler(){
         $columnstring = $_POST['js_data_for_php'];
-        
+
         if ($columnstring == 'reset') {
             $cartoptions = $this->admin_settings->default_options;
         } else {
@@ -383,7 +385,7 @@ class UBC_CART extends GFAddOn
         echo $this->create_table();
         die();
     }
-    
+
     // -- Function Name : cart_add_action_ajax_handler
     // -- Params : None
     // -- Purpose : Adds an item to the cart or increases quantity by 1
@@ -400,21 +402,21 @@ class UBC_CART extends GFAddOn
 		$prodexcerpt = $prodpost->post_excerpt;
 		$post_meta_data = get_post_custom($prodid);
 		//what if price field does not exist?
-		if (array_key_exists('price', $post_meta_data)) 
+		if (array_key_exists('price', $post_meta_data))
 			$prodprice = $post_meta_data['price'][0];
-		else 
+		else
 			$prodprice = "0.0";
-		if (array_key_exists('shipping', $post_meta_data)) 
+		if (array_key_exists('shipping', $post_meta_data))
 			$prodshipping = $post_meta_data['shipping'][0];
-		else 
+		else
 			$prodshipping = "0.0";
-		if (array_key_exists('shippingint', $post_meta_data)) 
+		if (array_key_exists('shippingint', $post_meta_data))
 			$prodshippingint = $post_meta_data['shippingint'][0];
-		else 
+		else
 			$prodshippingint = "0.0";
 	}
 	else{
-		//check if taxonomy id for other special use cases 
+		//check if taxonomy id for other special use cases
 		//In this case, check for IssueM plugin and issue_price in tax meta
 		if (class_exists('IssueM')){
 			$term = get_term_by('id',$theid,'issuem_issue');
@@ -433,14 +435,14 @@ class UBC_CART extends GFAddOn
 
         $cartoptions = get_option('ubc_cart_options',$this->admin_settings->default_options);
         $cart = $this->session->get('ubc-cart');
-        
+
         if ($prodtype == "ubc_product") {
             //** Check if id exists in cart then **check for single
             $cartkey = false;
             if ($cart) {
                 foreach($cart as $rkey => $crow) {
                     foreach($crow as $ckey => $ccol) {
-                        
+
                         if ($crow['prodid'] == $prodid) {
                             $cartkey = $rkey+1;
                             break;
@@ -453,7 +455,7 @@ class UBC_CART extends GFAddOn
 		//$fmt = '%.2n';
  		//$cart[$cartkey-1]['prodshipping'] = money_format($fmt, $prodshipping * $cart[$cartkey-1]['prodquantity']);
             } else {
-                
+
                 If ($cartoptions['ubcepayment']) {
                     $cart[] = array('prodid'   => $prodid,'prodtitle' => $prodtitle,'prodexcerpt' => $prodexcerpt,'prodquantity' => '1','prodprice' => $prodprice, 'prodshipping' => $prodshipping, 'prodshippingint' => $prodshippingint);
                 } else {
@@ -473,7 +475,7 @@ class UBC_CART extends GFAddOn
         echo $this->create_table();
         die();
     }
-    
+
     // -- Function Name : cart_delete_action_ajax_handler
     // -- Params : None
     // -- Purpose : Deletes items in cart and resets session
@@ -499,7 +501,7 @@ class UBC_CART extends GFAddOn
 	}
     }
 
-    
+
     // -- Function Name : cart_show_action_ajax_handler
     // -- Params : None
     // -- Purpose : Display cart - used on settings page (no shortcode)
@@ -524,7 +526,7 @@ class UBC_CART extends GFAddOn
         }
         die();
     }
-    
+
     // -- Function Name : cart_calculate_total
     // -- Params : $formatted
     // -- Purpose : Calculates the subtotal of items in the cart (item*quant)
@@ -552,14 +554,14 @@ class UBC_CART extends GFAddOn
     // -- Function Name : create_table
     // -- Params : None
     // -- Purpose : Sets up the cart data in table format for display
-    private function create_table() 
+    private function create_table()
     {
         $field_id=4;
         $sessionid = $this->session->get_id();
         //**********************************
         //*    CART OPTIONS                *
         //**********************************
-        $cartoptions = get_option('ubc_cart_options',$this->admin_settings->default_options); 
+        $cartoptions = get_option('ubc_cart_options',$this->admin_settings->default_options);
         $colstr = $cartoptions['cartColumns'];
         $colarr = explode(',',$colstr);
         $columns = array();
@@ -600,7 +602,7 @@ class UBC_CART extends GFAddOn
                 $odd_even = ($rownum % 2) == 0 ? "even" : "odd";
                 $cart_display .= "<tr class='cartfield_list_row_{$odd_even}'>";
                 $colnum = 0;
-                foreach($item as $key => $column){ 
+                foreach($item as $key => $column){
                     $cart_display .= "<td class='cartfield_list_cell'><input class='".$colarr[$colnum]."' type='text' name='username' value='{$column}' readonly></td>";
                     $colnum++;
                     if ($colnum == $maxcolnum) break;
@@ -611,7 +613,7 @@ class UBC_CART extends GFAddOn
                 $cart_display .="<img  src='".plugins_url('gravityforms/images/remove.png')."' title='Remove this row' class='delete_list_item' style='cursor:pointer;width:16px;height:16px;' onclick='cart_delete_item(this, {$rownum},false)' />";
 
                 $cart_display .="</td></tr>";
-          
+
                 $rownum++;
             }//foreach
         }//empty cart
@@ -620,7 +622,7 @@ class UBC_CART extends GFAddOn
         }
         $cart_display .="</tbody></table><p style='font-size:10px;margin-top:-5px;'>sid = ".$this->cart_calculate_total(true).':'.$sessionid."</p></div>";
 $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/').'\'" class="button-primary btn-info"><i class="icon-circle-arrow-right"></i> Checkout</button><button class="button-primary btn-info" onclick="deletecart()" ><i class="icon-trash"></i> Reset Cart</button>';
-         
+
 	global $allowedposttags;
 	$allowedposttags['input'] = array('class' => array(),'readonly' => array(),'value' => array(), 'type'=> array());
 	$allowedposttags['button'] = array('onclick' => array(),'style' => array(), 'class' =>array());
@@ -637,11 +639,11 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
         if (! defined('UBCCART_PLUGIN_DIR' ) ) {
             define('UBCCART_PLUGIN_DIR', plugin_dir_path(__FILE__ ) );
         }
-        define('UBCCART_PLUGIN_URI', plugins_url('', __FILE__ ) ); 
+        define('UBCCART_PLUGIN_URI', plugins_url('', __FILE__ ) );
     }
-    
+
     // -- Function Name : includes
-    // -- Params : 
+    // -- Params :
     // -- Purpose : All php to be included
     private function includes() {
         global $admin_settings;
@@ -658,16 +660,16 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
         //Class that sets up options and settings page
         require_once UBCCART_PLUGIN_DIR . 'includes/class-gfaddon.php';
     }
-    
+
     // -- Function Name : createUBCProductsType
     // -- Params : None
-    // -- Purpose : Creates 
-    // --                   1. new Custom Post Type 'ubc_product' 
+    // -- Purpose : Creates
+    // --                   1. new Custom Post Type 'ubc_product'
     // --                   2. new taxonomy 'ubc_product_type' with default term 'Available'
     // --                   3. new custom fields (just price field for now)
     // --                   4. loads js and css used with isotope
     private function createUBCProductsType() {
-        
+
         // create a product custom post type
         $ubcproducts = new UBCCARTCPT('ubc_product' , array('supports' => array('title', 'editor', 'thumbnail', 'comments', 'excerpt'),
         'has_archive' => true
@@ -678,10 +680,10 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
 
         //Create taxterm here
         $ubcproducts->set_default_term('Available','ubc_product_type');
-        
+
         //Create Custom Field
         $this->cart_fields  = new UBCCARTCustomFields('ubc_product');
-        
+
         // define the columns to appear on the admin edit screen
         $ubcproducts->columns(array('cb' => '<input type="checkbox" />',
         'title' => __('Title'),
@@ -693,7 +695,7 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
 
         //*create the shipping column here*
         $ubcproducts->columns['shipping'] = __('Shipping');
-        
+
         //populate the shipping column
         $ubcproducts->populate_column('shipping', function($column, $post) {
             $post_meta_data = get_post_custom($post->ID);
@@ -702,26 +704,26 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
 
         //*create the shipping column here*
         $ubcproducts->columns['shippingint'] = __('Shipping International');
-        
+
         //populate the shipping column
         $ubcproducts->populate_column('shippingint', function($column, $post) {
             $post_meta_data = get_post_custom($post->ID);
             echo "$".$post_meta_data['shippingint'][0];
         });
-        
+
         //*create the price column here*
         $ubcproducts->columns['price'] = __('Price');
-        
+
         //populate the price column
         $ubcproducts->populate_column('price', function($column, $post) {
             $post_meta_data = get_post_custom($post->ID);
             echo "$".$post_meta_data['price'][0];
         });
-        
+
         //make price and shipping columns sortable
         $ubcproducts->sortable(array('price' => array('price', true),'shipping' => array('shipping', true),'shippingint' => array('shippingint', true),
         ));
-        
+
         $ubcproducts->populate_column('featured-thumbnail',function($column, $post) {
             echo the_post_thumbnail(array(50,50)  );
         });
@@ -729,19 +731,19 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
         $ubcproducts->populate_column('prod_description',function($column, $post) {
             the_excerpt();
         });
-        
+
         // use "shopping cart" icon for post type
         $ubcproducts->menu_icon("dashicons-cart");
-        
+
         // register js for archive page
         wp_register_script('ubc-product-isotope', UBCCART_PLUGIN_URI . '/assets/isotope.pkgd.min.js');
-        
+
         //Load CSS for archive page
         wp_register_style('ubc-product-styles', UBCCART_PLUGIN_URI . '/assets/css/demos.css' );
         wp_register_style('ubc-product-styles', UBCCART_PLUGIN_URI . '/assets/css/layout.css' );
-        
+
     }
-    
+
     // -- Function Name : ubc_product_enqueue_scripts
     // -- Params : None
     // -- Purpose : Queues up isotope for display formatting on archive page.
@@ -749,7 +751,7 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
     {
         wp_enqueue_script('ubc-product-isotope' );
     }
-    
+
 
     // -- Function Name : ubc_product_template
     // -- Params : $template
@@ -767,7 +769,7 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
         }
         return $template;
     }
-    
+
     // -- Function Name : ubc_cart_add_field
     // -- Params : $field_groups
     // -- Purpose : Adds the advanced field button to Gravity Forms editor
@@ -785,7 +787,7 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
         }
         return $field_groups;
     }
-    
+
     // -- Function Name : ubc_cart_title
     // -- Params : $type
     // -- Purpose : Adds the name/type of field that shows in editor
@@ -795,7 +797,7 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
             return __('UBC Cart' , 'gravityforms' );
         }
     }
-    
+
     // -- Function Name : ubc_cart_get_value
     // -- Params : $value, $lead, $field, $form
     // -- Purpose : Calls get_cart_data($field) to get the data values from cart
@@ -806,17 +808,17 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
         }
         return $value;
     }
-    
+
 
     // -- Function Name : ubc_cart_gform_editor_js
-    // -- Params : 
+    // -- Params :
     // -- Purpose : Sets up the settings for the ubc cart field in the Gravity Forms editor
     // -- It is just a list field with settings hidden
     function ubc_cart_gform_editor_js()
     {
-        
+
         ?>
-        
+
         <script type='text/javascript'>
         jQuery(document).ready(function($) {
             fieldSettings["cart"] = " .cart_setting";
@@ -851,15 +853,15 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
         </script>
         <?php
     }
-    
+
     // -- Function Name : set_defaults
-    // -- Params : 
+    // -- Params :
     // -- Purpose : Defaults when field is added to the form
     // -- Note if there are no fields to display on the Settings page, an error happens
     // -- By default the id field is displayed on activation to get around this.
     function set_defaults()
     {
-        
+
         $cartoptions = get_option('ubc_cart_options',$this->admin_settings->default_options);
         $colstr = $cartoptions['cartColumns'];
         if (!empty($colstr)) {
@@ -890,7 +892,7 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
         break;
         <?php
     }
-    
+
     // -- Function Name : ubc_cart_settings
     // -- Params : $position, $form_id
     // -- Purpose : Creates a custom setting field in the ubc cart field
@@ -900,9 +902,9 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
 
         if ($position == 50 ) {
             ?>
-            
+
             <li class="cart_setting field_setting">
-            
+
             <input type="text" id="field_cart" readonly/>
             <label for="field_cart" class="inline">
             <?php _e('Session Status', "gravityforms");
@@ -910,12 +912,12 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
             <?php gform_tooltip("form_field_cart");
             ?>
             </label>
-            
+
             </li>
             <?php
         }
     }
-    
+
     // -- Function Name : ubc_cart_add_tooltips
     // -- Params : $tooltips
     // -- Purpose : Tooltip on the custom ubc cart settings field
@@ -924,7 +926,7 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
         $tooltips["form_field_cart"] = "<h6>Session Status</h6>If you do not see a valid session id here, there is something amiss";
         return $tooltips;
     }
-    
+
     // -- Function Name : ubc_cart_gform_enqueue_scripts
     // -- Params : $form, $ajax
     // -- Purpose : Add Cart JS
@@ -939,7 +941,7 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
             }
         }
     }
-    
+
     // -- Function Name : custom_class
     // -- Params : $classes, $field, $form
     // -- Purpose : Adds a custom class to the cart field
@@ -948,10 +950,10 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
         if ($field["type"] == "cart" ) {
             $classes .= " gform_cart";
         }
-        
+
         return $classes;
     }
-    
+
     // -- Function Name : ubc_cart_field_input
     // -- Params : $input, $field, $value, $lead_id, $form_id
     // -- Purpose : Used to display the cart BOTH internally (in the editor) as well
@@ -959,11 +961,11 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
     function ubc_cart_field_input ( $input, $field, $value, $lead_id, $form_id )
     {
 
-        if ( $field["type"] == "cart" ) {  
+        if ( $field["type"] == "cart" ) {
 
         if (!GFCommon::is_form_editor()){
             if( !class_exists( 'UBC_CBM' ) )
-                $this->admin_settings->remove_price_column(); 
+                $this->admin_settings->remove_price_column();
             $value = $this->get_cart_data($field);
         }
 
@@ -974,14 +976,14 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
 
         if(!is_array($value)){
             $value = array(array());
-            $empty_cart = true;         
+            $empty_cart = true;
         }
 
         $has_columns = is_array(rgar($field, "choices"));
         //**********************************
         //*    CART OPTIONS                *
         //**********************************
-        $cartoptions = get_option('ubc_cart_options',$this->admin_settings->default_options); 
+        $cartoptions = get_option('ubc_cart_options',$this->admin_settings->default_options);
         $colstr = $cartoptions['cartColumns'];
         $colarr = explode(',',$colstr);
         $columns = array();
@@ -1059,7 +1061,7 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
             $delete_icon = !rgempty("deleteIconUrl", $field) ? $field["deleteIconUrl"] : GFCommon::get_base_url() . "/images/remove.png";
             $on_click = IS_ADMIN && RG_CURRENT_VIEW != "entry" ? "" : "onclick='gformAddListItem(this, {$maxRow})'";
             //$list .="<td class='gfield_list_icons'>";
-            //$list .="   <img src='{$delete_icon}'  title='" . __("Remove this row", "gravityforms") . "' alt='" . __("Remove this row", "gravityforms") . "' class='delete_list_item' style='cursor:pointer; {$delete_display} visibility:visible;' onclick='cart_delete_item(this, {$rownum}, true)' />"; 
+            //$list .="   <img src='{$delete_icon}'  title='" . __("Remove this row", "gravityforms") . "' alt='" . __("Remove this row", "gravityforms") . "' class='delete_list_item' style='cursor:pointer; {$delete_display} visibility:visible;' onclick='cart_delete_item(this, {$rownum}, true)' />";
             //$list .="</td>";
             //$list .= "</tr>";
 
@@ -1077,7 +1079,7 @@ $cart_display .= '<button onclick="window.location.href=\''.site_url('/checkout/
 
     // -- Function Name : ubc_cart_field_email
     // -- Params : $form
-    // -- Purpose : Try getting the headers showing on the columns  
+    // -- Purpose : Try getting the headers showing on the columns
     function ubc_cart_field_email($form)
     {
             foreach($form['fields'] as &$field )  {
@@ -1156,7 +1158,7 @@ private function cart_get_list_input($field, $has_columns, $column, $value, $for
                 //*    CART OPTIONS                *
                 //**********************************
                 $cartoptions = get_option('ubc_cart_options',$this->admin_settings->default_options);
-                
+
                 $colstr = $cartoptions['cartColumns'];
                 $colarr = explode(',',$colstr);
                 $columns = array();
@@ -1166,12 +1168,12 @@ private function cart_get_list_input($field, $has_columns, $column, $value, $for
                     $columns[$key]['text'] = $coltxt;
                     $order[] = $coltxt;
                 }
-                
+
                 $field->choices = $columns;
 
                 //Filled field choices here!!
                 $choices = $field->choices;
-                
+
                 //Get the cart here and fill value!!!!
                 $value = array();
                 $cart_items = $this->session->get('ubc-cart');
@@ -1195,12 +1197,12 @@ private function cart_get_list_input($field, $has_columns, $column, $value, $for
     }
 
     // -- Function Name : instance
-    // -- Params : 
+    // -- Params :
     // -- Purpose : Instantiates class on global variable
-    static function instance() 
+    static function instance()
     {
                 global $UBC_CART;
-                
+
                 // Only instantiate the Class if it hasn't been already
                 if (!isset($UBC_CART ) ) {
                     $UBC_CART = new UBC_CART();
@@ -1219,11 +1221,11 @@ private function cart_get_list_input($field, $has_columns, $column, $value, $for
 		array_push($tag_array,self::$merge_tag_shippingint);
                 foreach($form['fields'] as &$field ) {
 		    $subtotal_merge_tags = array();
-                    
+
                     if (current_filter() == 'gform_pre_render' && rgar($field, 'origCalculationFormula' ) ) {
                         $field['calculationFormula'] = $field['origCalculationFormula'];
                     }
-                    
+
                     if (! self::has_subtotal_merge_tag($field ) ) {
                         continue;
                     }
@@ -1236,23 +1238,23 @@ private function cart_get_list_input($field, $has_columns, $column, $value, $for
                     $field['origCalculationFormula'] = $field['calculationFormula'];
                     //$field['calculationFormula'] = str_replace(self::$merge_tag, $subtotal_merge_tags, $field['calculationFormula'] );
 		    $field['calculationFormula'] = str_replace($tag_array, $subtotal_merge_tags, $field['calculationFormula'] );
-                    
+
                 }
-                
+
                 return $form;
     }
 
     // -- Function Name : maybe_replace_subtotal_merge_tag_submission
     // -- Params : $form
-    // -- Purpose : 
+    // -- Purpose :
     function maybe_replace_subtotal_merge_tag_submission($form )
     {
         return $this->maybe_replace_subtotal_merge_tag($form, true );
     }
-    
+
     // -- Function Name : get_subtotal_merge_tag_string
     // -- Params : $form, $current_field, $filter_tags = false
-    // -- Purpose : Returns a subtotal from cart        
+    // -- Purpose : Returns a subtotal from cart
     function get_subtotal_merge_tag_string($form, $current_field, $filter_tags = false )
     {
         $cart_total = 0;
@@ -1269,7 +1271,7 @@ private function cart_get_list_input($field, $has_columns, $column, $value, $for
 
     // -- Function Name : get_shipping_merge_tag_string
     // -- Params : $form, $current_field, $filter_tags = false
-    // -- Purpose : Returns a shipping subtotal from cart        
+    // -- Purpose : Returns a shipping subtotal from cart
     function get_shipping_merge_tag_string($form, $current_field, $filter_tags = false )
     {
         $cart_total = 0;
@@ -1286,7 +1288,7 @@ private function cart_get_list_input($field, $has_columns, $column, $value, $for
 
     // -- Function Name : get_shippingint_merge_tag_string
     // -- Params : $form, $current_field, $filter_tags = false
-    // -- Purpose : Returns a shippingint subtotal from cart        
+    // -- Purpose : Returns a shippingint subtotal from cart
     function get_shippingint_merge_tag_string($form, $current_field, $filter_tags = false )
     {
         $cart_total = 0;
@@ -1300,21 +1302,21 @@ private function cart_get_list_input($field, $has_columns, $column, $value, $for
         }
         return $cart_total;
     }
-           
+
     // -- Function Name : add_merge_tags
     // -- Params : $form
-    // -- Purpose : Adds the merge tag to calculation fields drop down 
+    // -- Purpose : Adds the merge tag to calculation fields drop down
     function add_merge_tags($form )
     {
-                
+
         $label = __('UBC Cart Subtotal', 'gravityforms');
         $label_shipping = __('UBC Cart Shipping', 'gravityforms');
         $label_shippingint = __('UBC Cart Shipping International', 'gravityforms');
-                
+
         ?>
-                
+
                 <script type="text/javascript">
-                
+
                 // for the future (not yet supported for calc field)
                 gform.addFilter("gform_merge_tags", "ubccart_add_merge_tags");
                 function ubccart_add_merge_tags(mergeTags, elementId, hideAllFields, excludeFieldTypes, isPrepop, option )
@@ -1330,18 +1332,18 @@ private function cart_get_list_input($field, $has_columns, $column, $value, $for
                     );
                     return mergeTags;
                 }
-                
+
                 // hacky, but only temporary
                 jQuery(document).ready(function($){
-                    
+
                     var calcMergeTagSelect = $('#field_calculation_formula_variable_select');
                     calcMergeTagSelect.find('optgroup').eq(0).append('<option value="<?php echo self::$merge_tag; ?>"><?php echo $label; ?></option><option value="<?php echo self::$merge_tag_shipping; ?>"><?php echo $label_shipping; ?></option><option value="<?php echo self::$merge_tag_shippingint; ?>"><?php echo $label_shippingint; ?></option>' );
-                    
+
                 }
                 );
-                
+
                 </script>
-                
+
         <?php
 
         return $form;
@@ -1350,40 +1352,39 @@ private function cart_get_list_input($field, $has_columns, $column, $value, $for
 
     // -- Function Name : has_subtotal_merge_tag
     // -- Params : $field
-    // -- Purpose : If field is using the merge tag      
-    static function has_subtotal_merge_tag($field ) 
+    // -- Purpose : If field is using the merge tag
+    static function has_subtotal_merge_tag($field )
     {
-                
+
         // check if form is passed
         if (isset($field['fields'] ) ) {
-                    
+
             $form = $field;
             foreach($form['fields'] as $field ) {
                         if (self::has_subtotal_merge_tag($field )) {
                             return true;
                         }
             }
-                    
-        } 
+
+        }
         else {
-                    
+
             if (isset($field['calculationFormula'] ) && strpos($field['calculationFormula'], self::$merge_tag ) !== false || isset($field['calculationFormula'] ) && strpos($field['calculationFormula'], self::$merge_tag_shipping ) !== false  || isset($field['calculationFormula'] ) && strpos($field['calculationFormula'], self::$merge_tag_shippingint ) !== false) {
                         return true;
             }
-                    
+
         }
-                
+
         return false;
     }
-            
+
 }
 
 function UBCCart()
 {
     return UBC_CART::instance();
 }
-        
+
 if (!isset($UBC_CART ) ) {
     UBC_CART::instance();
 }
-      
