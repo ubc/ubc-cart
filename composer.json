@@ -1,0 +1,13 @@
+{
+	"name": 	"ubc-cart",
+	"description": 	"This plugin combines a Gravity Forms advanced field and session management (WP Session) which when combined with the UBC ePayments plugin (optional), gives you a simple shopping cart.",
+	"keywords": 	[ "wordpress", "plugin" ],
+	"homepage": 	"http://isit.arts.ubc.ca/",
+	"license":	"GPLv2",
+	"type": 	"wordpress-plugin",
+	"require": {
+			"php": ">=5.3",
+			"Gravity Forms Plugin" : "v1.9.9",
+			"composer/installers": "~1.0"
+	}
+}
