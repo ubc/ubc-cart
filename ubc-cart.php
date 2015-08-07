@@ -229,6 +229,7 @@ class UBC_CART extends GFAddOn
 		//var_dump($screen);
 		if ( 'forms_page_ubc_cart_options' == $screen->base ) {
 				$url = plugins_url( '/assets/js/gform_cart.js' , __FILE__ );
+				wp_enqueue_script( 'jquery-ui', 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/jquery-ui.min.js', array( 'jquery' ), false );
 				wp_enqueue_script( 'cart_script', $url , array( 'jquery' ), '1.0' );
 				wp_localize_script('cart_script', 'cart_script_vars',
 					array(
@@ -830,7 +831,7 @@ class UBC_CART extends GFAddOn
 		if ( ! empty( $colstr ) ) {
 			$colarr = explode( ',',$colstr );
 			foreach ( $colarr as $key => $coltxt ) {
-				$defaultStr .= 'new Choice( "'.$this->admin_settings->field_labels[ array_search( $coltxt, $this->admin_settings->field_order ) ].'" ),';
+				$defaultStr .= 'new Choice( \''.$this->admin_settings->field_labels[ array_search( $coltxt, $this->admin_settings->field_order ) ].'\'),';
 			}
 			$defaultStr = rtrim( $defaultStr,',' );
 		}
@@ -851,7 +852,7 @@ class UBC_CART extends GFAddOn
 		field.enableChoiceValue = true;
 		field.allowsPrepopulate = false;
 		jQuery("#field_columns_enabled").prop("checked", true);
-		field.choices = new Array(<?php echo esc_html( $defaultStr ); ?>);
+		field.choices = new Array(<?php echo wp_kses_post( $defaultStr ); ?>);
 		break;
 		<?php
 	}

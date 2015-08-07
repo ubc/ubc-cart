@@ -1,142 +1,141 @@
 <?php
-
 // Only if Gravity Forms plugin activated
-if (class_exists("GFForms")) {
+if ( class_exists( 'GFForms' ) ) {
 	GFForms::include_addon_framework();
 
 	// -- Class Name : GFCartAddOn
 	// -- Purpose : Creates a settings page under Gravity Forms
 	// -- Settings for
-	// --             1. Checkout Page.
-	// --             2. Taxterm filter.
-	// --             3. Columns choice.
-	// --             4. Debug functions.
+	// --			 1. Checkout Page.
+	// --			 2. Taxterm filter.
+	// --			 3. Columns choice.
+	// --			 4. Debug functions.
 	// -- Has to be aware of whether UBC ePayments plugin is active or not
 	// -- Keeps  the default options and labels information.
 	// -- Created On : March 21st 2015
 	class GFCartAddOn extends GFAddOn {
-
-		protected $_version = "1.0";
-		protected $_min_gravityforms_version = "1.7.9999";
-		protected $_slug = "ubc_cart_options";
-		protected $_path = "ubc_cart/ubc_cart_options.php";
+		protected $_version = '1.0';
+		protected $_min_gravityforms_version = '1.7.9999';
+		protected $_slug = 'ubc_cart_options';
+		protected $_path = 'ubc_cart/ubc_cart_options.php';
 		protected $_full_path = __FILE__;
-		protected $_url = "http://www.gravityforms.com";
-		protected $_title = "UBC Cart";
-		protected $_short_title = "UBC Cart";
-		public $field_order = array('prodid', 'prodtitle', 'prodexcerpt', 'prodquantity', 'prodprice', 'prodshipping','prodshippingint');
-		public $field_labels = array('ID', 'Title', 'Description', 'Quantity', 'Price', 'Shipping', 'Shipping (Int.)');
-		public $default_options = array('cartColumns' => 'prodid', 'cartColumnsoff' => 'prodtitle,prodexcerpt,prodquantity', 'formid' => '0', 'filter' => '', 'ubcepayment' => false);
+		protected $_url = 'http://www.gravityforms.com';
+		protected $_title = 'UBC Cart';
+		protected $_short_title = 'UBC Cart';
+		public $field_order = array( 'prodid', 'prodtitle', 'prodexcerpt', 'prodquantity', 'prodprice', 'prodshipping','prodshippingint' );
+		public $field_labels = array( 'ID', 'Title', 'Description', 'Quantity', 'Price', 'Shipping', 'Shipping (Int.)' );
+		public $default_options = array( 'cartColumns' => 'prodid', 'cartColumnsoff' => 'prodtitle,prodexcerpt,prodquantity', 'formid' => '0', 'filter' => '', 'ubcepayment' => false );
 
 		// -- Function Name : init
 		// -- Params : None
 		// -- Purpose : Loads stylesheet for options page
 		public function init() {
 			parent::init();
-			wp_register_style('optionsStylesheet', plugins_url('css/options.css', __FILE__));
-			wp_enqueue_style('optionsStylesheet');
+			wp_register_style( 'optionsStylesheet', plugins_url( 'css/options.css', __FILE__ ) );
+			wp_enqueue_style( 'optionsStylesheet' );
 		}
 
 
-    		// -- Function Name : is_columns_valid
-    		// -- Params : columns string
-    		// -- Purpose : Validates columns
-    		public function is_columns_valid($columnsoptionStr){
-			$columns = explode(',',$columnsoptionStr);
-			$i = substr_count($columnsoptionStr,",");
+		// -- Function Name : is_columns_valid
+		// -- Params : columns string
+		// -- Purpose : Validates columns
+		public function is_columns_valid($columnsoptionStr) {
+			$columns = explode( ',', $columnsoptionStr );
+			$i = substr_count( $columnsoptionStr, ',' );
 			$valid = true;
-			if ($i > 0){
- 				foreach($columns as $column ){
-  					if (!in_array($column,$this->field_order)){
-                                   		$valid = false;
-				   		break;
+			if ( 0 < $i ) {
+				foreach ( $columns as $column ) {
+					if ( ! in_array( $column,$this->field_order ) ) {
+						$valid = false;
+						break;
 					}
-		 		}
+				}
 			}
 			return $valid;
-    		}
+		}
 
 
-    		// -- Function Name : is_term_valid
-    		// -- Params : termid
-    		// -- Purpose : Validates term can be blank or valid term and nothing else
-    		public function is_term_valid($term){
-			if (get_term_by('id',$term,'ubc_product_type') || $term == '')
+		// -- Function Name : is_term_valid
+		// -- Params : termid
+		// -- Purpose : Validates term can be blank or valid term and nothing else
+		public function is_term_valid($term) {
+			if ( get_term_by( 'id',$term,'ubc_product_type' ) || '' == $term ) {
 				return true;
-			else
+			} else {
 				return false;
-    		}
+			}
+		}
 
-    		// -- Function Name : is_formid_valid
-    		// -- Params : formid
-    		// -- Purpose : Validates formid valid form and nothing else
-    		public function is_formid_valid($form_id){
-			if (RGFormsModel::get_form( $form_id))
+		// -- Function Name : is_formid_valid
+		// -- Params : formid
+		// -- Purpose : Validates formid valid form and nothing else
+		public function is_formid_valid($form_id) {
+			if ( RGFormsModel::get_form( $form_id ) ) {
 				return true;
-			else
-				return false; 
-    		}
+			} else {
+				return false;
+			}
+		}
 
-    		// -- Function Name : is_cartoption_valid
-    		// -- Params : cart options
-    		// -- Purpose : Validates all keys and values of the cart options
-   		public function is_cartoption_valid($options){        
-        		//check if ALL keys are valid and they are the only ones
-			if (count(array_diff(array_keys($this->default_options),array_keys($options)) == 0))   { 		
-				if (    self::is_columns_valid($options['cartColumns'])&&
-					self::is_columns_valid($options['cartColumnsoff'])&&
-					self::is_term_valid($options['filter'])&&
-                   			self::is_formid_valid($options['formid'])&&
-					wp_validate_boolean($options['ubcepayment']))
-   					return true;
+		// -- Function Name : is_cartoption_valid
+		// -- Params : cart options
+		// -- Purpose : Validates all keys and values of the cart options
+		public function is_cartoption_valid( $options ) {
+			//check if ALL keys are valid and they are the only ones
+			if ( count( array_diff( array_keys( $this->default_options ), array_keys( $options ) ) == 0 ) ) {
+				if ( self::is_columns_valid( $options['cartColumns'] ) && self::is_columns_valid( $options['cartColumnsoff'] ) && self::is_term_valid( $options['filter'] ) && self::is_formid_valid( $options['formid'] ) ) {
+					return true;
+				} else {
+					return false;
 				}
-				else 
-  					return false;
-    			}
+			}
+		}
 
 
 		// -- Function Name : add_price_column
 		// -- Params : None
 		// -- Purpose : Adds the price field to options
 		function add_price_column() {
-			$cartoptions = get_option('ubc_cart_options', $this->default_options);
+			$cartoptions = get_option( 'ubc_cart_options', $this->default_options );
 			$cartoptions['ubcepayment'] = true;
 
-			$cartarrOn = explode(',', $cartoptions['cartColumns']);
-			$cartarrOff = explode(',', $cartoptions['cartColumnsoff']);
-			if (!(in_array('prodprice', $cartarrOn) || in_array('prodprice', $cartarrOff))) {
-				array_push($cartarrOff, 'prodprice');
-				array_push($cartarrOff, 'prodshipping');
-				array_push($cartarrOff, 'prodshippingint');
-				$cartoptions['cartColumnsoff'] = implode(',', $cartarrOff);
+			$cartarrOn = explode( ',', $cartoptions['cartColumns'] );
+			$cartarrOff = explode( ',', $cartoptions['cartColumnsoff'] );
+			if ( ! ( in_array( 'prodprice', $cartarrOn ) || in_array( 'prodprice', $cartarrOff ) ) ) {
+				array_push( $cartarrOff, 'prodprice' );
+				array_push( $cartarrOff, 'prodshipping' );
+				array_push( $cartarrOff, 'prodshippingint' );
+				$cartoptions['cartColumnsoff'] = implode( ',', $cartarrOff );
 			}
-			if ($this->is_cartoption_valid($cartoptions))
-				update_option('ubc_cart_options', $cartoptions);
+			if ( $this->is_cartoption_valid( $cartoptions ) ) {
+				update_option( 'ubc_cart_options', $cartoptions );
+			}
 		}
 
 		// -- Function Name : remove_price_column
 		// -- Params : None
 		// -- Purpose : Removes the price field from options
 		function remove_price_column() {
-			$cartoptions = get_option('ubc_cart_options', $this->default_options);
+			$cartoptions = get_option( 'ubc_cart_options', $this->default_options );
 			$cartoptions['ubcepayment'] = false;
 
-			$cartarrOn = explode(',', $cartoptions['cartColumns']);
-			$cartarrOff = explode(',', $cartoptions['cartColumnsoff']);
-			if (in_array('prodprice', $cartarrOn)) {
-				unset($cartarrOn[array_search('prodprice', $cartarrOn)]);
-				unset($cartarrOn[array_search('prodshipping', $cartarrOn)]);
-				unset($cartarrOn[array_search('prodshippingint', $cartarrOn)]);
-				$cartoptions['cartColumns'] = implode(',', $cartarrOn);
+			$cartarrOn = explode( ',', $cartoptions['cartColumns'] );
+			$cartarrOff = explode( ',', $cartoptions['cartColumnsoff'] );
+			if ( in_array( 'prodprice', $cartarrOn ) ) {
+				unset( $cartarrOn[ array_search( 'prodprice', $cartarrOn ) ] );
+				unset( $cartarrOn[ array_search( 'prodshipping', $cartarrOn ) ] );
+				unset( $cartarrOn[ array_search( 'prodshippingint', $cartarrOn ) ] );
+				$cartoptions['cartColumns'] = implode( ',', $cartarrOn );
 			}
-			if (in_array('prodprice', $cartarrOff)) {
-				unset($cartarrOff[array_search('prodprice', $cartarrOff)]);
-				unset($cartarrOff[array_search('prodshipping', $cartarrOff)]);
-				unset($cartarrOff[array_search('prodshippingint', $cartarrOff)]);
-				$cartoptions['cartColumnsoff'] = implode(',', $cartarrOff);
+			if ( in_array( 'prodprice', $cartarrOff ) ) {
+				unset( $cartarrOff[ array_search( 'prodprice', $cartarrOff ) ] );
+				unset( $cartarrOff[ array_search( 'prodshipping', $cartarrOff ) ] );
+				unset( $cartarrOff[ array_search( 'prodshippingint', $cartarrOff ) ] );
+				$cartoptions['cartColumnsoff'] = implode( ',', $cartarrOff );
 			}
-			if ($this->is_cartoption_valid($cartoptions))
-				update_option('ubc_cart_options', $cartoptions);
+			if ( $this->is_cartoption_valid( $cartoptions ) ) {
+				update_option( 'ubc_cart_options', $cartoptions );
+			}
 		}
 
 		// -- Function Name : plugin_page
@@ -145,7 +144,7 @@ if (class_exists("GFForms")) {
 		public function plugin_page() {
 
 			function cart_init() {
-				if (class_exists('UBC_CBM')) {
+				if ( class_exists( 'UBC_CBM' ) ) {
 					$this->add_price_column();
 				} else {
 					$this->remove_price_column();
@@ -153,22 +152,22 @@ if (class_exists("GFForms")) {
 			}
 
 			//when plugin loaded checks for ePayments
-			add_action('plugins_loaded', 'cart_init');
+			add_action( 'plugins_loaded', 'cart_init' );
 
 			//when page loaded checks for ePayments
-			if (class_exists('UBC_CBM')) {
+			if ( class_exists( 'UBC_CBM' ) ) {
 				$this->add_price_column();
 			} else {
 				$this->remove_price_column();
 			}
 
 			//**********************************
-			//*    CART OPTIONS                *
+			//*	CART OPTIONS				*
 			//**********************************
-			$cartoptions = get_option('ubc_cart_options', $this->default_options);
+			$cartoptions = get_option( 'ubc_cart_options', $this->default_options );
 			?>
 			<h3>General Features</h3>
-	    		<div style="width:100%" class="panel-instructions">
+				<div style="width:100%" class="panel-instructions">
 				<ol>
 					<li>Adds a new advanced field "UBC Cart" created for Gravity Forms.</li>
 					<li>Adds two new merge tags "ubccart_subtotal" and "ubccart_shipping" created for use in any calculation field.</li>
@@ -179,14 +178,14 @@ if (class_exists("GFForms")) {
 				</ol>
 			</div>
 
-           		<h3>1. Setup your Gravity Form.</h3><br>
+				   <h3>1. Setup your Gravity Form.</h3><br>
 			<div style="width:100%" class="panel-instructions">
 				<h3>Add the UBC Cart advanced field</h3><br>
-				<img src="<?php echo plugins_url('assets/img/cartfld.gif',dirname(__FILE__)); ?>">
+				<img src="<?php echo esc_url( plugins_url( 'assets/img/cartfld.gif',dirname( __FILE__ ) ) ); ?>">
 			</div>
 			<div style="width:100%" class="panel-instructions">
 				<h3>Add a calculation field using the merge tag</h3><br>
-				<img src="<?php echo plugins_url('assets/img/merge.gif',dirname(__FILE__)); ?>">
+				<img src="<?php echo esc_url( plugins_url( 'assets/img/merge.gif',dirname( __FILE__ ) ) ); ?>">
 			</div>
 
 			<div class="panel-instructions">
@@ -194,29 +193,28 @@ if (class_exists("GFForms")) {
 
 			<?php
 			//get the formid option here for formid and display in select - default = 0
+			global $allowedposttags;
+			$allowedposttags['select'] = array( 'onchange' => array(),'class' => array(),'style' => array() );
+			$allowedposttags['option'] = array( 'value' => array(),'selected' => array() );
 			$form_option = $cartoptions['formid'];
-			$forms = RGFormsModel::get_forms($active, "title");
-			$select = '<div class="gcolumn_wrapper" style="height:60px;">			
+			$forms = RGFormsModel::get_forms( $active, 'title' );
+			$select = '<div class="gcolumn_wrapper" style="height:60px;">
 				<select id="chooseform" onchange="chooseform(this)">';
 			$select .= '<option value="0">Please Choose Checkout Form:</option>';
-			foreach ($forms as $form) {
-				if ($form->is_active) {
-					if ($form->id == $form_option) {
-						$select .= '<option value="' . absint($form->id) . '" selected="selected">' . esc_html($form->title) . '</option>';
+			foreach ( $forms as $form ) {
+				if ( $form->is_active ) {
+					if ( $form->id == $form_option ) {
+						$select .= '<option value="' . absint( $form->id ) . '" selected="selected">' . esc_html( $form->title ) . '</option>';
 					} else {
-						$select .= '<option value="' . absint($form->id) . '">' . esc_html($form->title) . '</option>';
+						$select .= '<option value="' . absint( $form->id ) . '">' . esc_html( $form->title ) . '</option>';
 					}
-
 				}
 			}
 			$select .= '</select>';
-			echo $select;
-
+			echo wp_kses_post( $select );
 			?>
 
-			<a href="<?php echo esc_url(site_url('/checkout/')); ?>" class="button-primary" style="margin-left:20px;" onclick="window.location.href='/checkout/'">Go to Checkout</a></div><hr>
-			<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-			<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/jquery-ui.min.js"></script>
+			<a href="<?php echo esc_url( site_url( '/checkout/' ) ); ?>" class="button-primary" style="margin-left:20px;" onclick="window.location.href='/checkout/'">Go to Checkout</a></div><hr>
 			<script type="text/javascript">
 				jQuery(document).ready(function () {
 					jQuery("#sortable_available, #sortable_selected").sortable({connectWith: '.sortable_connected', placeholder: 'placeholder', receive: function( event, ui ) {cartSelectColumns(false);}});
@@ -232,26 +230,26 @@ if (class_exists("GFForms")) {
 			</script>
 			<h3>2. Pick your Column Choices for the cart.</h3>
 			<div class="panel-instructions">
-				<?php if ($cartoptions['ubcepayment']) {
-				echo "<img src='".plugins_url('assets/img/Active.gif',dirname(__FILE__))."'>";
-			} else {
+				<?php if ( $cartoptions['ubcepayment'] ) {
+						echo "<img src='".esc_url( plugins_url( 'assets/img/Active.gif',dirname( __FILE__ ) ) )."'>";
+} else {
 				echo "<em style='color:red;'>UBC ePayments plugin is not installed/activated. No pricing fields are available.</em>";
-			}
+}
 			?>
 			<br>Drag & drop to order and select which columns are displayed in the form.</div>
 			<div class="gcolumn_wrapper">
 				<div class="gcolumn_container_left">
 					<div class="gform_select_column_heading">Active Columns</div>
 					<ul id="sortable_selected" class="sortable_connected ui-sortable">
-            				<?php
-						$colstr = $cartoptions['cartColumns'];
-						if (!empty($colstr)) {
-							$colarr = explode(',', $colstr);
-							foreach ($colarr as $key => $coltxt) {
-								echo '<li id="' . esc_html($coltxt) . '" class="ui-sortable-handle">' . esc_html($this->field_labels[array_search($coltxt, $this->field_order)]) . '</li>';
-							}
-						}
-					?>
+<?php
+$colstr = $cartoptions['cartColumns'];
+if ( ! empty( $colstr ) ) {
+	$colarr = explode( ',', $colstr );
+	foreach ( $colarr as $key => $coltxt ) {
+		echo '<li id="' . esc_html( $coltxt ) . '" class="ui-sortable-handle">' . esc_html( $this->field_labels[ array_search( $coltxt, $this->field_order ) ] ) . '</li>';
+	}
+}
+?>
 					</ul>
 				</div>
 				<div class="column-arrow-mid"></div>
@@ -259,13 +257,13 @@ if (class_exists("GFForms")) {
 					<div class="gform_select_column_heading"> Inactive Columns</div>
 					<ul id="sortable_available" class="sortable_connected ui-sortable">
 						<?php
-							$colstr = $cartoptions['cartColumnsoff'];
-							if (!empty($colstr)) {
-								$colarr = explode(',', $colstr);
-								foreach ($colarr as $key => $coltxt) {
-									echo '<li id="' . esc_html($coltxt) . '" class="ui-sortable-handle">' . esc_html($this->field_labels[array_search($coltxt, $this->field_order)]) . '</li>';
-								}
+						$colstr = $cartoptions['cartColumnsoff'];
+						if ( ! empty( $colstr ) ) {
+							$colarr = explode( ',', $colstr );
+							foreach ( $colarr as $key => $coltxt ) {
+								echo '<li id="' . esc_html( $coltxt ) . '" class="ui-sortable-handle">' . esc_html( $this->field_labels[ array_search( $coltxt, $this->field_order ) ] ) . '</li>';
 							}
+						}
 						?>
 					</ul>
 				</div>
@@ -273,25 +271,25 @@ if (class_exists("GFForms")) {
 			<div class="panel-buttons">
 						<input id="resetcols" class="button-primary" type="button" onclick="resetColumns();cartSelectColumns(true);" value="Reset to defaults">
 						<script>
-							function resetColumns(){
-								<?php $labelstr = implode(',', $this->field_labels);?>
-									htmlstrOnst = "<?php echo $cartoptions['cartColumns'];?>";
-									htmlstrOffst = "<?php echo $cartoptions['cartColumnsoff'];?>";
+							function resetColumns() {
+								<?php $labelstr = implode( ',', $this->field_labels );?>
+									htmlstrOnst = "<?php echo esc_html( $cartoptions['cartColumns'] );?>";
+									htmlstrOffst = "<?php echo esc_html( $cartoptions['cartColumnsoff'] );?>";
 									if (htmlstrOnst)
 										htmlstrOn = htmlstrOnst.split(",");
 									else  htmlstrOn = new Array();
 									if (htmlstrOffst)
 										htmlstrOff = htmlstrOffst.split(",");
 									else  htmlstrOff = new Array();
-									labelsstr = "<?php echo $labelstr?>";
- 									labels = labelsstr.split(",");
+									labelsstr = "<?php echo esc_html( $labelstr );?>";
+									 labels = labelsstr.split(",");
 
 									onhtmlstr = '';offhtmlstr='';
 									for (index = 0, len = htmlstrOn.length; index < len; ++index) {
-                   						onhtmlstr += '<li id="+htmlstrOn[index]+" class="ui-sortable-handle">'+labels[index]+'</li>';
+										   onhtmlstr += '<li id="+htmlstrOn[index]+" class="ui-sortable-handle">'+labels[index]+'</li>';
 									}
 									for (index = 0, len = htmlstrOff.length; index < len; ++index) {
-                   						offhtmlstr += '<li id="+htmlstrOff[index]+" class="ui-sortable-handle">'+labels[index]+'</li>';
+										   offhtmlstr += '<li id="+htmlstrOff[index]+" class="ui-sortable-handle">'+labels[index]+'</li>';
 									}
 									$('.gcolumn_container_left #sortable_selected').html(onhtmlstr);
 									$('.gcolumn_container_right #sortable_available').html(offhtmlstr);
@@ -303,9 +301,9 @@ if (class_exists("GFForms")) {
 			<div class="panel-buttons">
 				<?php
 					$filter_option = $cartoptions['filter'];
-					wp_dropdown_categories('id=cartfilter&show_option_none=Select filter&show_count=1&orderby=name&echo=1&taxonomy=ubc_product_type&selected=' . $filter_option);
+					wp_dropdown_categories( 'id=cartfilter&show_option_none=Select filter&show_count=1&orderby=name&echo=1&taxonomy=ubc_product_type&selected=' . $filter_option );
 				?>
-				<a style="margin-left:20px;" class="button-primary" type="button" href="<?php echo get_post_type_archive_link('ubc_product');?>">Archive Page</a>
+				<a style="margin-left:20px;" class="button-primary" type="button" href="<?php echo esc_url( get_post_type_archive_link( 'ubc_product' ) );?>">Archive Page</a>
 			</div><br><hr>
 
 			<br><h3>4. Debugging and Testing.</h3>
@@ -321,12 +319,10 @@ if (class_exists("GFForms")) {
 				<a href="#" class="button-primary" onclick="addtocart()">Add to Cart</a>
 				<a href="#" class="button-primary" onclick="showcart()">Show Cart</a>
 				<a href="#" class="button-primary" onclick="deletecart()">Delete Cart</a>
-				<a href="<?php echo site_url('/checkout/'); ?>" class="button-primary" style="margin-left:20px;">Go to Checkout</a>
+				<a href="<?php echo esc_url( site_url( '/checkout/' ) ); ?>" class="button-primary" style="margin-left:20px;">Go to Checkout</a>
 				<div id="cart-details"></div>
 			</div>
-
-        <?php
-}
+		<?php
+		}
 	}
 }
-?>
