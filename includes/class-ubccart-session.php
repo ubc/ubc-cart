@@ -12,7 +12,7 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 // -- Class Name : UBCCART_Session
-// -- Purpose : 
+// -- Purpose :
 // --           1. Creates a cart session - uses class WP Session.
 // --           2. Sets the cookie
 // --           3. Getter and Setter for ubc-cart (as serialized array)
@@ -23,7 +23,7 @@ class UBCCART_Session {
 
 	private $session;//Holds session data
 	private $prefix = '';//Session index prefix
-	
+
 	public function __construct() {
 
 		// Always use WP_Session (default)
@@ -46,7 +46,7 @@ class UBCCART_Session {
 
 		if ( empty( $this->session ) ) {
 			$this->init();
-		} 
+		}
 
 	}
 

@@ -27,7 +27,7 @@ Uses Gravity forms hooks and filters to create a new advanced button and field i
 The values of the field are gathered from the session variable and the field inputs are read-only. No changes to this field can be made directly - All changes are made to the session variable (UBC Cart) and then reflected on the form.
 
 Price and shipping subtotals are also calculated independently (from the session var) and are made available via merge tags. This can be used in any calculation field. e.g. To calculate the GST, Add a price field and make it a a calculation field (setting). Then select {ubccart_subtotal} * 0.05 as the calculation.
- 
+
 All price fields are summed to give the total (Standard Gravity Forms behaviour).
 
 In conjunction with UBC ePayments plugin, this gives you the shopping cart functionality - because you select this form in the ePayments settings page and the total is sent to CBM.
@@ -50,8 +50,14 @@ The advantage of using transients (which are just WordPress options) is that the
 
 The wrapper class for UBC Cart is basically just a setter and getter class for the session manager.
 
+== Version 0.9 ==
+
+Release date: August 7, 2015
+
+* Fixed linting errors as per phpcs and 'Wordpress-Extra' standard
+
 == Version 0.8 ==
 
 Release date: March 21, 2015
 
-* Initial Release 
+* Initial Release
