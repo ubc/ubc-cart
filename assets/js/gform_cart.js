@@ -6,7 +6,7 @@ var columns,columnsoff;
 
 // -- chooseform - sets option for formid to be used on checkout page - option
 function chooseform(element){
-	formid = $(element).val();
+	formid = jQuery(element).val();
 		//alert(cart_script_vars.pluginsUrl + '/ubc-cart/assets/img/ajax-loader.gif');
 		 jQuery.ajax({
 			 url: cart_script_vars.ajaxurl,
