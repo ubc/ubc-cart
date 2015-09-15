@@ -16,14 +16,14 @@ class UBCCARTCPT {
 	 *
 	 * @var string $post_type_name Holds the name of the post type.
 	 */
-    public $post_type_name;
+	public $post_type_name;
 	/**
 	 * Holds the singular name of the post type. This is a human friendly
 	 * name, capitalized with spaces assigned on __construct().
 	 *
 	 * @var string $singular Post type singular name.
 	 */
-    public $singular;
+	public $singular;
 	/**
 	 * Holds the plural name of the post type. This is a human friendly
 	 * name, capitalized with spaces assigned on __construct().
@@ -102,31 +102,31 @@ class UBCCARTCPT {
 	 * @param array $options User submitted options.
 	 */
 	function __construct( $post_type_names, $options = array() ) {
-        // Check if post type names is a string or an array.
-        if ( is_array( $post_type_names ) ) {
+		// Check if post type names is a string or an array.
+		if ( is_array( $post_type_names ) ) {
 			// Add names to object.
 			$names = array(
 				'singular',
 				'plural',
-				'slug'
+				'slug',
 			);
 			// Set the post type name.
 			$this->post_type_name = $post_type_names['post_type_name'];
 			// Cycle through possible names.
 			foreach ( $names as $name ) {
 				// If the name has been set by user.
-                if ( isset( $post_type_names[ $name ] ) ) {
+				if ( isset( $post_type_names[ $name ] ) ) {
 					// Use the user setting
 					$this->$name = $post_type_names[ $name ];
-				// Else generate the name.
-                } else {
+					// Else generate the name.
+				} else {
 					// define the method to be used
 					$method = 'get_' . $name;
 					// Generate the name
 					$this->$name = $this->$method();
 				}
 			}
-		// Else the post type name is only supplied.
+			// Else the post type name is only supplied.
 		} else {
 			// Apply to post type name.
 			$this->post_type_name = $post_type_names;
@@ -136,7 +136,7 @@ class UBCCARTCPT {
 			$this->plural = $this->get_plural();
 			// Set the singular name label.
 			$this->singular = $this->get_singular();
-        }
+		}
 		// Set the user submitted options to the object.
 		$this->options = $options;
 		// Register the post type.
@@ -150,7 +150,7 @@ class UBCCARTCPT {
 		// Add filter select option to admin edit.
 		$this->add_action( 'restrict_manage_posts', array( &$this, 'add_taxonomy_filters' ) );
 		$this->add_action( 'init', array( &$this, 'flush_rewrite' ) );
-    }
+	}
 
 
 
@@ -160,9 +160,9 @@ class UBCCARTCPT {
 	 * @see http://codex.wordpress.org/Function_Reference/register_post_type
 	 */
 	function flush_rewrite() {
-  		global $wp_rewrite;
+		  global $wp_rewrite;
 		//$wp_rewrite->set_permalink_structure('/%postname%/');
- 		 $wp_rewrite->flush_rules();
+		  $wp_rewrite->flush_rules();
 	}
 
 
@@ -174,14 +174,14 @@ class UBCCARTCPT {
 	 * @param string $var The variable you would like to retrieve.
 	 * @return mixed Returns the value on success, boolean false whe it fails.
 	 */
-	function set_default_term( $default_term,$default_tax ) {
+	function set_default_term( $default_term, $default_tax ) {
 		// If the variable exists.
-		if ($default_term && $default_tax){
+		if ( $default_term && $default_tax ) {
 			$this->default_term = $default_term;
 			$this->default_tax = $default_tax;
 		}
 
-    	}
+	}
 
 	/**
 	 * Get
@@ -199,8 +199,8 @@ class UBCCARTCPT {
 		} else {
 			// on fail return false
 			return false;
-        }
-    }
+		}
+	}
 	/**
 	 * Set
 	 *
@@ -219,10 +219,10 @@ class UBCCARTCPT {
 			'plural',
 			'slug',
 			'options',
-			'taxonomies'
+			'taxonomies',
 		);
 		// If the variable is not a reserved variable
-        if ( ! in_array( $var, $reserved ) ) {
+		if ( ! in_array( $var, $reserved ) ) {
 			// Write variable and value
 			$this->$var = $value;
 		}
@@ -240,7 +240,7 @@ class UBCCARTCPT {
 	function add_action( $action, $function, $priority = 10, $accepted_args = 1 ) {
 		// Pass variables into WordPress add_action function
 		add_action( $action, $function, $priority, $accepted_args );
-    }
+	}
 	/**
 	 * Add Filter
 	 *
@@ -256,7 +256,7 @@ class UBCCARTCPT {
 	function add_filter( $action, $function, $priority = 10, $accepted_args = 1 ) {
 		// Pass variables into Wordpress add_action function
 		add_filter( $action, $function, $priority, $accepted_args );
-    }
+	}
 	/**
 	 * Get slug
 	 *
@@ -273,12 +273,12 @@ class UBCCARTCPT {
 		// Name to lower case.
 		$name = strtolower( $name );
 		// Replace spaces with hyphen.
-		$name = str_replace( " ", "-", $name );
+		$name = str_replace( ' ', '-', $name );
 		// Replace underscore with hyphen.
-		$name = str_replace( "_", "-", $name );
+		$name = str_replace( '_', '-', $name );
 		return $name;
 	}
-    /**
+	/**
 	 * Get plural
 	 *
 	 * Returns the friendly plural name.
@@ -297,7 +297,7 @@ class UBCCARTCPT {
 		}
 		// Return the plural name. Add 's' to the end.
 		return $this->get_human_friendly( $name ) . 's';
-    }
+	}
 	/**
 	 * Get singular
 	 *
@@ -317,7 +317,7 @@ class UBCCARTCPT {
 		}
 		// Return the string.
 		return $this->get_human_friendly( $name );
-    }
+	}
 	/**
 	 * Get human friendly
 	 *
@@ -336,7 +336,7 @@ class UBCCARTCPT {
 			$name = $this->post_type_name;
 		}
 		// Return human friendly name.
-		return ucwords( strtolower( str_replace( "-", " ", str_replace( "_", " ", $name ) ) ) );
+		return ucwords( strtolower( str_replace( '-', ' ', str_replace( '_', ' ', $name ) ) ) );
 	}
 	/**
 	 * Register Post Type
@@ -362,7 +362,7 @@ class UBCCARTCPT {
 			'search_items'       => sprintf( __( 'Search %s', $this->textdomain ), $plural ),
 			'not_found'          => sprintf( __( 'No %s found', $this->textdomain ), $plural ),
 			'not_found_in_trash' => sprintf( __( 'No %s found in Trash', $this->textdomain ), $plural ),
-			'parent_item_colon'  => sprintf( __( 'Parent %s:', $this->textdomain ), $singular )
+			'parent_item_colon'  => sprintf( __( 'Parent %s:', $this->textdomain ), $singular ),
 		);
 		// Default options.
 		$defaults = array(
@@ -370,14 +370,14 @@ class UBCCARTCPT {
 			'public' => true,
 			'rewrite' => array(
 				'slug' => $slug,
-			)
+			),
 		);
 		// Merge user submitted options with defaults.
 		$options = array_replace_recursive( $defaults, $this->options );
 		// Set the object options as full options passed.
 		$this->options = $options;
 		// Check that the post type doesn't already exist.
-        if ( ! post_type_exists( $this->post_type_name ) ) {
+		if ( ! post_type_exists( $this->post_type_name ) ) {
 			// Register the post type.
 			register_post_type( $this->post_type_name, $options );
 		}
@@ -389,7 +389,7 @@ class UBCCARTCPT {
 	 *
 	 * @param string $taxonomy_name The slug for the taxonomy.
 	 * @param array  $options Taxonomy options.
-     */
+	 */
 	function register_taxonomy($taxonomy_names, $options = array()) {
 		// Post type defaults to $this post type if unspecified.
 		$post_type = $this->post_type_name;
@@ -397,7 +397,7 @@ class UBCCARTCPT {
 		$names = array(
 			'singular',
 			'plural',
-			'slug'
+			'slug',
 			);
 		// if an array of names are passed
 		if ( is_array( $taxonomy_names ) ) {
@@ -418,7 +418,7 @@ class UBCCARTCPT {
 				}
 			}
 			// Else if only the taxonomy_name has been supplied.
-		} else  {
+		} else {
 			// Create user friendly names.
 			$taxonomy_name = $taxonomy_names;
 			$singular = $this->get_singular( $taxonomy_name );
@@ -450,8 +450,8 @@ class UBCCARTCPT {
 			'labels' => $labels,
 			'hierarchical' => true,
 			'rewrite' => array(
-				'slug' => $slug
-			)
+				'slug' => $slug,
+			),
 		);
 		// Merge default options with user submitted options.
 		$options = array_replace_recursive( $defaults, $options );
@@ -460,7 +460,7 @@ class UBCCARTCPT {
 		// Create array used when registering taxonomies.
 		$this->taxonomy_settings[ $taxonomy_name ] = $options;
 	}
-    /**
+	/**
 	 * Register taxonomies
 	 *
 	 * Cycles through taxonomies added with the class and registers them.
@@ -479,8 +479,9 @@ class UBCCARTCPT {
 				}
 			}
 		}
-		if ($this->default_term && $this->default_tax)
-			wp_insert_term($this->default_term,$this->default_tax);
+		if ( $this->default_term && $this->default_tax ) {
+			wp_insert_term( $this->default_term, $this->default_tax );
+		}
 	}
 	/**
 	 * Add admin columns
@@ -496,12 +497,12 @@ class UBCCARTCPT {
 			// Default columns
 			$columns = array(
 				'cb' => '<input type="checkbox" />',
-				'title' => __( 'Title', $this->textdomain )
+				'title' => __( 'Title', $this->textdomain ),
 			);
 			// If there are taxonomies registered to the post type.
 			if ( is_array( $this->taxonomies ) ) {
 				// Create a column for each taxonomy.
-				foreach( $this->taxonomies as $tax ) {
+				foreach ( $this->taxonomies as $tax ) {
 					// Get the taxonomy object for labels.
 					$taxonomy_object = get_taxonomy( $tax );
 					// Column key is the slug, value is friendly name.
@@ -532,7 +533,7 @@ class UBCCARTCPT {
 		// Get wordpress $post object.
 		global $post;
 		// determine the column
-		switch( $column ) {
+		switch ( $column ) {
 			// If column is a taxonomy associated with the post type.
 			case ( taxonomy_exists( $column ) ) :
 				// Get the taxonomy for the post
@@ -541,7 +542,7 @@ class UBCCARTCPT {
 				if ( ! empty( $terms ) ) {
 					$output = array();
 					// Loop through each term, linking to the 'edit posts' page for the specific term.
-					foreach( $terms as $term ) {
+					foreach ( $terms as $term ) {
 						// Output is an array of terms associated with the post.
 						$output[] = sprintf(
 							// Define link.
@@ -554,24 +555,24 @@ class UBCCARTCPT {
 					}
 					// Join the terms, separating them with a comma.
 					echo join( ', ', $output );
-				// If no terms found.
+					// If no terms found.
 				} else {
 					// Get the taxonomy object for labels
 					$taxonomy_object = get_taxonomy( $column );
 					// Echo no terms.
-					printf( __( 'No %s', $this->textdomain ), $taxonomy_object->labels->name );
+					printf( __( 'No %s', $this->textdomain ), esc_html( $taxonomy_object->labels->name ) );
 				}
 			break;
 			// If column is for the post ID.
 			case 'post_id' :
-				echo $post->ID;
+				echo intval( $post->ID );
 			break;
 			// if the column is prepended with 'meta_', this will automagically retrieve the meta values and display them.
 			case ( preg_match( '/^meta_/', $column ) ? true : false ) :
 				// meta_book_author (meta key = book_author)
 				$x = substr( $column, 5 );
 				$meta = get_post_meta( $post->ID, $x );
-				echo join( ", ", $meta );
+				echo join( ', ', $meta );
 			break;
 			// If the column is post thumbnail.
 			case 'icon' :
@@ -581,11 +582,11 @@ class UBCCARTCPT {
 				if ( has_post_thumbnail() ) {
 					// Display post featured image with edit link.
 					echo '<a href="' . $link . '">';
-						the_post_thumbnail( array(60, 60) );
-                    echo '</a>';
+						the_post_thumbnail( array( 60, 60 ) );
+					echo '</a>';
 				} else {
 					// Display default media image with link.
-					echo '<a href="' . $link . '"><img src="'. site_url( '/wp-includes/images/crystal/default.png' ) .'" alt="' . $post->post_title . '" /></a>';
+					echo '<a href="' . $link . '"><img src="'. site_url( '/wp-includes/images/crystal/default.png' ) .'" alt="' . esc_html( $post->post_title ) . '" /></a>';
 				}
 			break;
 			// Default case checks if the column has a user function, this is most commonly used for custom fields.
@@ -610,7 +611,7 @@ class UBCCARTCPT {
 	 */
 	function filters( $filters = array() ) {
 		$this->filters = $filters;
-    }
+	}
 	/**
 	 *  Add taxtonomy filters
 	 *
@@ -622,9 +623,9 @@ class UBCCARTCPT {
 		// Must set this to the post type you want the filter(s) displayed on.
 		if ( $typenow == $this->post_type_name ) {
 			// if custom filters are defined use those
-            if ( is_array( $this->filters ) ) {
+			if ( is_array( $this->filters ) ) {
 				$filters = $this->filters;
-			// else default to use all taxonomies associated with the post
+				// else default to use all taxonomies associated with the post
 			} else {
 				$filters = $this->taxonomies;
 			}
@@ -636,24 +637,24 @@ class UBCCARTCPT {
 					// Get taxonomy terms and order by name.
 					$args = array(
 						'orderby' => 'name',
-						'hide_empty' => false
+						'hide_empty' => false,
 					);
 					// Get taxonomy terms.
 					$terms = get_terms( $tax_slug, $args );
 					// If we have terms.
-                    if ( $terms ) {
+					if ( $terms ) {
 						// Set up select box.
-						printf( ' &nbsp;<select name="%s" class="postform">', $tax_slug );
+						printf( ' &nbsp;<select name="%s" class="postform">', esc_html( $tax_slug ) );
 						// Default show all.
-						printf( '<option value="0">%s</option>', sprintf( __( 'Show all %s', $this->textdomain ), $tax->label ) );
+						printf( '<option value="0">%s</option>', sprintf( __( 'Show all %s', $this->textdomain ), esc_html( $tax->label ) ) );
 						// Foreach term create an option field...
 						foreach ( $terms as $term ) {
 							// ...if filtered by this term make it selected.
-							if ( isset( $_GET[ esc_html($tax_slug) ] ) && $_GET[ esc_html($tax_slug) ] === $term->slug ) {
-								printf( '<option value="%s" selected="selected">%s (%s)</option>', $term->slug, $term->name, $term->count );
-							// ...create option for taxonomy.
+							if ( isset( $_GET[ esc_html( $tax_slug ) ] ) && $_GET[ esc_html( $tax_slug ) ] === $term->slug ) {
+								printf( '<option value="%s" selected="selected">%s (%s)</option>', esc_html( $term->slug ), esc_html( $term->name ), intval( $term->count ) );
+								// ...create option for taxonomy.
 							} else {
-								printf( '<option value="%s">%s (%s)</option>', $term->slug, $term->name, $term->count );
+								printf( '<option value="%s">%s (%s)</option>', esc_html( $term->slug ), esc_html( $term->name ), intval( $term->count ) );
 							}
 						}
 						// End the select field.
@@ -670,12 +671,12 @@ class UBCCARTCPT {
 	 *
 	 * @param array $columns An array of columns to be displayed.
 	 */
-    function columns( $columns ) {
+	function columns( $columns ) {
 		// If columns is set.
-        if( isset( $columns ) ) {
+		if ( isset( $columns ) ) {
 			// Assign user submitted columns to object.
 			$this->columns = $columns;
-        }
+		}
 	}
 	/**
 	 * Populate columns
@@ -711,7 +712,7 @@ class UBCCARTCPT {
 	 * @param array $columns Columns to be sortable.
 	 *
 	 */
-    function make_columns_sortable( $columns ) {
+	function make_columns_sortable( $columns ) {
 		// For each sortable column.
 		foreach ( $this->sortable as $column => $values ) {
 			// Make an array to merge into wordpress sortable columns.
@@ -728,10 +729,10 @@ class UBCCARTCPT {
 	 *
 	 * @see http://codex.wordpress.org/Plugin_API/Filter_Reference/request
 	 */
-    function load_edit() {
-        // Run filter to sort columns when requested
-        $this->add_filter( 'request', array( &$this, 'sort_columns' ) );
-    }
+	function load_edit() {
+		// Run filter to sort columns when requested
+		$this->add_filter( 'request', array( &$this, 'sort_columns' ) );
+	}
 	/**
 	 * Sort columns
 	 *
@@ -743,20 +744,20 @@ class UBCCARTCPT {
 	 * @return array A sorted array.
 	 */
 	function sort_columns( $vars ) {
-        // Cycle through all sortable columns submitted by the user
-        foreach ( $this->sortable as $column => $values ) {
+		// Cycle through all sortable columns submitted by the user
+		foreach ( $this->sortable as $column => $values ) {
 			// Retrieve the meta key from the user submitted array of sortable columns
-            $meta_key = $values[0];
+			$meta_key = $values[0];
 			// If the meta_key is a taxonomy
-            if( taxonomy_exists( $meta_key ) ) {
+			if ( taxonomy_exists( $meta_key ) ) {
 				// Sort by taxonomy.
-				$key = "taxonomy";
+				$key = 'taxonomy';
 			} else {
 				// else by meta key.
-				$key = "meta_key";
-            }
-            // If the optional parameter is set and is set to true
-            if ( isset( $values[1] ) && true === $values[1] ) {
+				$key = 'meta_key';
+			}
+			// If the optional parameter is set and is set to true
+			if ( isset( $values[1] ) && true === $values[1] ) {
 				// Vaules needed to be ordered by integer value
 				$orderby = 'meta_value_num';
 			} else {
@@ -772,7 +773,7 @@ class UBCCARTCPT {
 						$vars,
 						array(
 							'meta_key' => $meta_key,
-							'orderby' => $orderby
+							'orderby' => $orderby,
 						)
 					);
 				}
@@ -788,12 +789,12 @@ class UBCCARTCPT {
 	 *
 	 * @param string $icon dashicon name
 	 */
-    function menu_icon( $icon = "dashicons-admin-page" ) {
-		if ( is_string( $icon ) && stripos( $icon, "dashicons" ) !== false ) {
-			$this->options["menu_icon"] = $icon;
+	function menu_icon( $icon = 'dashicons-admin-page' ) {
+		if ( is_string( $icon ) && stripos( $icon, 'dashicons' ) !== false ) {
+			$this->options['menu_icon'] = $icon;
 		} else {
 			// Set a default menu icon
-			$this->options["menu_icon"] = "dashicons-admin-page";
+			$this->options['menu_icon'] = 'dashicons-admin-page';
 		}
 	}
 	/**
