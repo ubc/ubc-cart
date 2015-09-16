@@ -44,8 +44,25 @@ jQuery( document ).ready(function() {
 			 }
 			 });
 			 return false;
-
-
+	});
+	// toggles whether the menu item shows
+	jQuery('#cartmenu_chk').on('change', function($) {
+		checked_value = (jQuery(this).prop('checked') ? 1 : 0 ); //false or true
+		//alert(checked_value);
+			 jQuery.ajax({
+					 url: cart_script_vars.ajaxurl,
+					 type: 'POST',
+					 data: {action: 'cart_menu_action',cart_menu_action_nonce: cart_script_vars.cart_menu_action_nonce,js_data_for_php: checked_value},
+					 error: function(jqXHR, textStatus) {alert(textStatus);},
+					 beforeSend: function(){
+							jQuery('#cartmenu_chk').parent().append('<img style="width:15px;margin-left:5px;" id="spinner" src="'+ cart_script_vars.pluginsUrl +'/ubc-cart/assets/img/ajax-loader.gif">');
+				 },
+					 dataType: 'html',
+					 success: function(response){
+				jQuery('#spinner').remove();
+				 }
+			 });
+			 return false;
 	});
 });
 
@@ -155,6 +172,24 @@ function showcart(){
 	 return false;
 }
 
+// -- save cart name - if name/label changed in options
+function savecartname(){
+	 jQuery.ajax({
+		url: cart_script_vars.ajaxurl,
+		type: 'POST',
+		data: {action: 'cart_savename_action',cart_savename_action_nonce: cart_script_vars.cart_savename_action_nonce,js_data_for_php: jQuery('#cartname').val()},
+		error: function(jqXHR, textStatus) {alert(textStatus);},
+		beforeSend: function(){
+			jQuery('#cartname').parent().append('<img style="width:15px;margin-left:5px;" id="spinner" src="'+ cart_script_vars.pluginsUrl +'/ubc-cart/assets/img/ajax-loader.gif">');
+		},
+		dataType: 'html',
+		success: function(response){
+			alert(response);
+			jQuery('#spinner').remove();
+		}
+	 });
+	 return false;
+}
 
 // -- deletecart - used on settings page as debug - also need to add this to cart
 function deletecart(){

@@ -181,26 +181,29 @@ class UBC_CART extends GFAddOn
 		add_action( 'wp_ajax_cart_show_action', array( &$this, 'cart_show_action_ajax_handler' ) );
 		add_action( 'wp_ajax_nopriv_cart_show_action', array( &$this, 'cart_show_action_ajax_handler' ) );
 
-		//Adjust Cart Column order
-		add_action( 'wp_ajax_cart_columns_action', array( &$this, 'cart_columns_action_ajax_handler' ) );
-		add_action( 'wp_ajax_nopriv_cart_columns_action', array( &$this, 'cart_columns_action_ajax_handler' ) );
-
 		//Delete or reduce quantity of Cart item
 		add_action( 'wp_ajax_cart_delete_item_action', array( &$this, 'cart_delete_item_action_ajax_handler' ) );
 		add_action( 'wp_ajax_nopriv_cart_delete_item_action', array( &$this, 'cart_delete_item_action_ajax_handler' ) );
 
+		//Adjust Cart Column order
+		add_action( 'wp_ajax_cart_columns_action', array( &$this, 'cart_columns_action_ajax_handler' ) );
+
 		//Settings switch GF form used as checkout
 		add_action( 'wp_ajax_cart_switch_form_action', array( &$this, 'cart_switch_form_action_ajax_handler' ) );
-		add_action( 'wp_ajax_nopriv_cart_switch_form_action', array( &$this, 'cart_switch_form_action_ajax_handler' ) );
 
 		//Switch tax term used to filter items
 		add_action( 'wp_ajax_cart_filter_action', array( &$this, 'cart_filter_action_ajax_handler' ) );
-		add_action( 'wp_ajax_nopriv_cart_filter_action', array( &$this, 'cart_filter_action_ajax_handler' ) );
+
+		//Toggle show cart in menu
+		add_action( 'wp_ajax_cart_menu_action', array( &$this, 'cart_menu_action_ajax_handler' ) );
+
+		//Save Cart Label
+		add_action( 'wp_ajax_cart_savename_action', array( &$this, 'cart_savename_action_ajax_handler' ) );
 	}
 
 	// -- Function Name : cart_script
 	// -- Params : None
-	// -- Purpose : Add plugin JS (both Frontend and Admin). All ajax actions nonced.
+	// -- Purpose : Add plugin JS (Frontend). All ajax actions nonced.
 	function cart_script( $skip = false ) {
 		if ( ( ( is_single()||is_archive() ) && get_post_type( ) == 'ubc_product' ) || $skip ) {
 			$url = plugins_url( '/assets/js/gform_cart.js' , __FILE__ );
@@ -211,10 +214,7 @@ class UBC_CART extends GFAddOn
 					'cart_add_action_nonce' => wp_create_nonce( 'cart_add_action' ),
 					'cart_show_action_nonce' => wp_create_nonce( 'cart_show_action' ),
 					'cart_delete_action_nonce' => wp_create_nonce( 'cart_delete_action' ),
-					'cart_columns_action_nonce' => wp_create_nonce( 'cart_columns_action' ),
-						'cart_delete_item_action_nonce' => wp_create_nonce( 'cart_delete_item_action' ),
-					'cart_switch_form_action_nonce' => wp_create_nonce( 'cart_switch_form_action' ),
-					'cart_filter_action_nonce' => wp_create_nonce( 'cart_filter_action' ),
+					'cart_delete_item_action_nonce' => wp_create_nonce( 'cart_delete_item_action' ),
 					'pluginsUrl' => plugins_url( ),
 				)
 			);
@@ -223,7 +223,7 @@ class UBC_CART extends GFAddOn
 
 	// -- Function Name : cart_script
 	// -- Params : None
-	// -- Purpose : Add plugin JS (both Frontend and Admin). All ajax actions nonced.
+	// -- Purpose : Add plugin JS (Admin). All ajax actions nonced.
 	function admin_cart_script( ) {
 		$screen = get_current_screen( );
 		//var_dump($screen);
@@ -241,12 +241,68 @@ class UBC_CART extends GFAddOn
 					'cart_delete_item_action_nonce' => wp_create_nonce( 'cart_delete_item_action' ),
 					'cart_switch_form_action_nonce' => wp_create_nonce( 'cart_switch_form_action' ),
 					'cart_filter_action_nonce' => wp_create_nonce( 'cart_filter_action' ),
+					'cart_menu_action_nonce' => wp_create_nonce( 'cart_menu_action' ),
+					'cart_savename_action_nonce' => wp_create_nonce( 'cart_savename_action' ),
 					'pluginsUrl' => plugins_url(),
 					)
 				);
 		}
 	}
 
+	// -- Function Name : cart_savename_action_ajax_handler
+	// -- Params : None
+	// -- Purpose : Saves Cart page title
+	// --
+	public function cart_savename_action_ajax_handler( ) {
+		if ( wp_verify_nonce( $_POST['cart_savename_action_nonce'], 'cart_savename_action' ) ) {
+			$cartname = sanitize_text_field( $_POST['js_data_for_php'] );
+			//**********************************
+			//*    CART OPTIONS                *
+			//**********************************;
+			$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
+			$cartoptions['cartname'] = $cartname;
+			$this->set_cart_page();
+			if ( $this->admin_settings->is_cartoption_valid( $cartoptions ) ) {
+				update_option( 'ubc_cart_options' , $cartoptions );
+			}
+			die();
+		}
+	}
+
+	// -- Function Name : cart_menu_action_ajax_handler
+	// -- Params : None
+	// -- Purpose : Toggles the cart to show in the menu
+	// -- used to enable/disable Add to btn as well as filter in archive page
+	public function cart_menu_action_ajax_handler( ) {
+		if ( wp_verify_nonce( $_POST['cart_menu_action_nonce'], 'cart_menu_action' ) ) {
+			$showmenu = $_POST['js_data_for_php'];
+			$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
+			if ( 1 == $showmenu ) {
+				$locations = get_nav_menu_locations();
+				$itemtitle = $cartoptions['cartname'];
+				$itempid = $cartoptions['cartpid'];
+				if ( isset( $locations['primary'] ) ) {
+							$menu_id = $locations['primary'];
+							$new_menu_obj = array();
+							$cartmenu = wp_update_nav_menu_item($menu_id, 0,  array(
+										'menu-item-title' => $itemtitle,
+										'menu-item-object' => 'page',
+										'menu-item-parent-id' => '',
+										'menu-item-object-id' => $itempid,//get_page_by_path( $itemslug )->ID,
+										'menu-item-type' => 'post_type',
+										'menu-item-status' => 'publish',
+							) );
+				} else {
+						$cartmenu = '';
+				}
+			} else {
+				wp_delete_post( $cartoptions['showcartmenu'] );
+			}
+			$cartoptions['showcartmenu'] = $cartmenu;
+			update_option( 'ubc_cart_options', $cartoptions );
+			die();
+		}
+	}
 
 	// -- Function Name : cart_filter_action_ajax_handler
 	// -- Params : None
@@ -325,6 +381,37 @@ class UBC_CART extends GFAddOn
 		}
 	}
 
+	// -- Function Name : set_cart_page
+	// -- Params : None
+	// -- Purpose : Sets cart page id and label to be used and adds the shortcode on the page
+	// -- If page doesn't exist creates a new page with label from options
+	private function set_cart_page( ) {
+		$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
+		$cartpid = $cartoptions['cartpid'];
+		$cartname = $cartoptions['cartname'];
+		$cart_shortcode = '[show-cart]';
+		$page = get_post( $cartpid );
+		if ( is_null( $page )|| $page->post_status != 'publish' ) {
+			global $user_ID;
+			$page->post_type    = 'page';
+			$page->post_content = $cart_shortcode;
+			$page->post_parent  = 0;
+			$page->post_author  = $user_ID;
+			$page->post_status  = 'publish';
+			$page->post_title   = $cartname;
+			$page = apply_filters( 'ubc_cart_add_new_page', $page, 'teams' );
+			$pageid = wp_insert_post( $page );
+			if ( 0 != $pageid ) {
+				$cartoptions['cartpid'] = $pageid;
+				update_option( 'ubc_cart_options', $cartoptions );
+			}
+		} else { //page exists
+			$page->post_title   = $cartname;
+			$page->post_content = $cart_shortcode;
+			wp_update_post( $page );
+		}
+	}
+
 	// -- Function Name : cart_delete_item_action_ajax_handler
 	// -- Params : None
 	// -- Purpose : Either deletes the item from cart if quantity is 1 or reduces quantity by 1
@@ -392,7 +479,7 @@ class UBC_CART extends GFAddOn
 			if ( $prodpost && $prodpost->post_type == 'ubc_product' ) {
 				$prodtype = $prodpost->post_type;
 				$prodid = $prodpost->ID;
-				$prodtitle = $prodpost->post_name;
+				$prodtitle = $prodpost->post_title;
 				$prodexcerpt = $prodpost->post_excerpt;
 				$post_meta_data = get_post_custom( $prodid );
 				//what if price field does not exist?
@@ -937,11 +1024,12 @@ class UBC_CART extends GFAddOn
 			//*    CART OPTIONS                *
 			//**********************************
 			$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
+			$cartpid = $cartoptions['cartpid'];
 			$colstr = $cartoptions['cartColumns'];
 			$colarr = explode( ',',$colstr );
 			$columns = array();
 			if ( ! GFCommon::is_form_editor() ) {
-				$edit_cart_link = "<a href='".get_post_type_archive_link( 'ubc_product' )."' style='float:right;margin:0.625em 10% 0.5em;line-height:1.3;font-weight:700;'>Edit Cart</a>";
+				$edit_cart_link = "<a href='".get_permalink( $cartpid )."' style='float:right;margin:0.625em 10% 0.5em;line-height:1.3;font-weight:700;'>Edit Cart</a>";
 			} else { $edit_cart_link = ''; }
 			foreach ( $colarr as $key => $coltxt ) {
 				$columns[ $key ]['text'] = $coltxt;//$this->admin_settings->field_labels[$order_key];

@@ -9,7 +9,8 @@ if ( class_exists( 'GFForms' ) ) {
 	// --			 1. Checkout Page.
 	// --			 2. Taxterm filter.
 	// --			 3. Columns choice.
-	// --			 4. Debug functions.
+	// --			 4. Cart Settings.
+	// --			 5. Debug functions.
 	// -- Has to be aware of whether UBC ePayments plugin is active or not
 	// -- Keeps  the default options and labels information.
 	// -- Created On : March 21st 2015
@@ -24,7 +25,7 @@ if ( class_exists( 'GFForms' ) ) {
 		protected $_short_title = 'UBC Cart';
 		public $field_order = array( 'prodid', 'prodtitle', 'prodexcerpt', 'prodquantity', 'prodprice', 'prodshipping','prodshippingint' );
 		public $field_labels = array( 'ID', 'Title', 'Description', 'Quantity', 'Price', 'Shipping', 'Shipping (Int.)' );
-		public $default_options = array( 'cartColumns' => 'prodid', 'cartColumnsoff' => 'prodtitle,prodexcerpt,prodquantity', 'formid' => '0', 'filter' => '', 'ubcepayment' => false );
+		public $default_options = array( 'cartColumns' => 'prodid', 'cartColumnsoff' => 'prodtitle,prodexcerpt,prodquantity', 'formid' => '0', 'filter' => '', 'ubcepayment' => false, 'showcartmenu' => '','cartname' => 'New Shopping Cart','cartpid' => '' );
 
 		// -- Function Name : init
 		// -- Params : None
@@ -66,11 +67,44 @@ if ( class_exists( 'GFForms' ) ) {
 			}
 		}
 
+		// -- Function Name : is_cartmenu_valid
+		// -- Params : $value is the menuid or empty (not to be shown)
+		// -- Purpose : Validates value checkbox can be '' or valid menuid and nothing else
+		public function is_cartmenu_valid($value) {
+			if ( '' == $value || is_int( $value ) ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
 		// -- Function Name : is_formid_valid
 		// -- Params : formid
 		// -- Purpose : Validates formid valid form and nothing else
 		public function is_formid_valid($form_id) {
 			if ( RGFormsModel::get_form( $form_id ) ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		// -- Function Name : is_cartname_valid
+		// -- Params : valid string
+		// -- Purpose : Validates string length > 0 and nothing else
+		public function is_cartname_valid($value) {
+			if ( empty( $value ) ) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+
+		// -- Function Name : is_cartpid_valid
+		// -- Params : postid
+		// -- Purpose : Check if valid postid and nothing else
+		public function is_cartpid_valid($value) {
+			if ( is_int( $value ) ) {
 				return true;
 			} else {
 				return false;
@@ -83,7 +117,7 @@ if ( class_exists( 'GFForms' ) ) {
 		public function is_cartoption_valid( $options ) {
 			//check if ALL keys are valid and they are the only ones
 			if ( count( array_diff( array_keys( $this->default_options ), array_keys( $options ) ) == 0 ) ) {
-				if ( self::is_columns_valid( $options['cartColumns'] ) && self::is_columns_valid( $options['cartColumnsoff'] ) && self::is_term_valid( $options['filter'] ) && self::is_formid_valid( $options['formid'] ) ) {
+				if ( self::is_columns_valid( $options['cartColumns'] ) && self::is_columns_valid( $options['cartColumnsoff'] ) && self::is_term_valid( $options['filter'] ) && self::is_formid_valid( $options['formid'] ) && self::is_cartmenu_valid( $options['showcartmenu'] ) && self::is_cartname_valid( $options['cartname'] ) && self::is_cartpid_valid( $options['cartpid'] ) ) {
 					return true;
 				} else {
 					return false;
@@ -306,7 +340,14 @@ if ( ! empty( $colstr ) ) {
 				<a style="margin-left:20px;" class="button-primary" type="button" href="<?php echo esc_url( get_post_type_archive_link( 'ubc_product' ) );?>">Archive Page</a>
 			</div><br><hr>
 
-			<br><h3>4. Debugging and Testing.</h3>
+			<br><h3>4. Cart Settings.</h3>
+			<div style="width:100%" class="panel-instructions">
+				<h3>Cart Name/Label?. <input id="cartname" style="font-weight:normal;" type="text" name="cartname" value="<?php echo esc_html( $cartoptions['cartname'] ); ?>" />
+				<a style="font-weight:normal;" class="button-primary" type="button" onclick="savecartname()">Save</a></h3>
+				<h3>Do you want to show the Cart in the primary menu?. <input id="cartmenu_chk" type="checkbox" name="showcartmenu" value="1"<?php checked( isset( $cartoptions['showcartmenu'] ) ); ?> /></h3>
+			</div>
+
+			<br><h3>5. Debugging and Testing.</h3>
 			<div class="panel-instructions">
 				<ol>
 					<li>Try clicking on "Add to Cart" button - this will add a "dummy" item to the cart and you should see a session id at the bottom of cart.</li>
