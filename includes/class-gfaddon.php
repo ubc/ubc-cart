@@ -41,7 +41,10 @@ if ( class_exists( 'GFForms' ) ) {
 		// -- Params : columns string
 		// -- Purpose : Validates columns
 		public function is_columns_valid($columnsoptionStr) {
-			$columns = explode( ',', $columnsoptionStr );
+			$columns = array();
+			if (!empty($columnsoptionStr)){
+				$columns = explode( ',', $columnsoptionStr );
+			}
 			$i = substr_count( $columnsoptionStr, ',' );
 			$valid = true;
 			if ( 0 < $i ) {
@@ -81,8 +84,9 @@ if ( class_exists( 'GFForms' ) ) {
 		// -- Function Name : is_formid_valid
 		// -- Params : formid
 		// -- Purpose : Validates formid valid form and nothing else
+		// -- Checkout form initially set to zero
 		public function is_formid_valid($form_id) {
-			if ( RGFormsModel::get_form( $form_id ) ) {
+			if ( RGFormsModel::get_form( $form_id ) || '0' == $form_id ) {
 				return true;
 			} else {
 				return false;
@@ -132,9 +136,14 @@ if ( class_exists( 'GFForms' ) ) {
 		function add_price_column() {
 			$cartoptions = get_option( 'ubc_cart_options', $this->default_options );
 			$cartoptions['ubcepayment'] = true;
-
-			$cartarrOn = explode( ',', $cartoptions['cartColumns'] );
-			$cartarrOff = explode( ',', $cartoptions['cartColumnsoff'] );
+			$cartarrOn = array();
+			if (!empty($cartoptions['cartColumns'])){
+				$cartarrOn = explode( ',', $cartoptions['cartColumns'] );
+			}
+			$cartarrOff = array();
+			if (!empty($cartoptions['cartColumnsoff'])){
+				$cartarrOff = explode( ',', $cartoptions['cartColumnsoff'] );
+			}
 			if ( ! ( in_array( 'prodprice', $cartarrOn ) || in_array( 'prodprice', $cartarrOff ) ) ) {
 				array_push( $cartarrOff, 'prodprice' );
 				array_push( $cartarrOff, 'prodshipping' );
@@ -152,9 +161,14 @@ if ( class_exists( 'GFForms' ) ) {
 		function remove_price_column() {
 			$cartoptions = get_option( 'ubc_cart_options', $this->default_options );
 			$cartoptions['ubcepayment'] = false;
-
-			$cartarrOn = explode( ',', $cartoptions['cartColumns'] );
-			$cartarrOff = explode( ',', $cartoptions['cartColumnsoff'] );
+			$cartarrOn = array();
+			if (!empty($cartoptions['cartColumns'])){
+				$cartarrOn = explode( ',', $cartoptions['cartColumns'] );
+			}
+			$cartarrOff = array();
+			if (!empty($cartoptions['cartColumnsoff'])){
+				$cartarrOff = explode( ',', $cartoptions['cartColumnsoff'] );
+			}
 			if ( in_array( 'prodprice', $cartarrOn ) ) {
 				unset( $cartarrOn[ array_search( 'prodprice', $cartarrOn ) ] );
 				unset( $cartarrOn[ array_search( 'prodshipping', $cartarrOn ) ] );
@@ -307,26 +321,26 @@ if ( ! empty( $colstr ) ) {
 						<script>
 							function resetColumns() {
 								<?php $labelstr = implode( ',', $this->field_labels );?>
-									htmlstrOnst = "<?php echo esc_html( $cartoptions['cartColumns'] );?>";
-									htmlstrOffst = "<?php echo esc_html( $cartoptions['cartColumnsoff'] );?>";
-									if (htmlstrOnst)
-										htmlstrOn = htmlstrOnst.split(",");
-									else  htmlstrOn = new Array();
-									if (htmlstrOffst)
-										htmlstrOff = htmlstrOffst.split(",");
-									else  htmlstrOff = new Array();
-									labelsstr = "<?php echo esc_html( $labelstr );?>";
-									 labels = labelsstr.split(",");
+								htmlstrOnst = "<?php echo esc_html( $cartoptions['cartColumns'] );?>";
+								htmlstrOffst = "<?php echo esc_html( $cartoptions['cartColumnsoff'] );?>";
+								if (htmlstrOnst)
+									htmlstrOn = htmlstrOnst.split(",");
+								else  htmlstrOn = new Array();
+								if (htmlstrOffst)
+									htmlstrOff = htmlstrOffst.split(",");
+								else  htmlstrOff = new Array();
+								labelsstr = "<?php echo esc_html( $labelstr );?>";
+								labels = labelsstr.split(",");
 
-									onhtmlstr = '';offhtmlstr='';
-									for (index = 0, len = htmlstrOn.length; index < len; ++index) {
-										   onhtmlstr += '<li id="+htmlstrOn[index]+" class="ui-sortable-handle">'+labels[index]+'</li>';
-									}
-									for (index = 0, len = htmlstrOff.length; index < len; ++index) {
-										   offhtmlstr += '<li id="+htmlstrOff[index]+" class="ui-sortable-handle">'+labels[index]+'</li>';
-									}
-									$('.gcolumn_container_left #sortable_selected').html(onhtmlstr);
-									$('.gcolumn_container_right #sortable_available').html(offhtmlstr);
+								onhtmlstr = '';offhtmlstr='';
+								for (index = 0, len = htmlstrOn.length; index < len; ++index) {
+									onhtmlstr += '<li id="+htmlstrOn[index]+" class="ui-sortable-handle">'+labels[index]+'</li>';
+								}
+								for (index = 0, len = htmlstrOff.length; index < len; ++index) {
+									offhtmlstr += '<li id="+htmlstrOff[index]+" class="ui-sortable-handle">'+labels[index]+'</li>';
+								}
+								jQuery('.gcolumn_container_left #sortable_selected').html(onhtmlstr);
+								jQuery('.gcolumn_container_right #sortable_available').html(offhtmlstr);
 							}
 						</script>
 			</div>
@@ -344,7 +358,7 @@ if ( ! empty( $colstr ) ) {
 			<div style="width:100%" class="panel-instructions">
 				<h3>Cart Name/Label?. <input id="cartname" style="font-weight:normal;" type="text" name="cartname" value="<?php echo esc_html( $cartoptions['cartname'] ); ?>" />
 				<a style="font-weight:normal;" class="button-primary" type="button" onclick="savecartname()">Save</a></h3>
-				<h3>Do you want to show the Cart in the primary menu?. <input id="cartmenu_chk" type="checkbox" name="showcartmenu" value="1"<?php checked( isset( $cartoptions['showcartmenu'] ) ); ?> /></h3>
+				<h3>Do you want to show the Cart in the primary menu?. <input id="cartmenu_chk" type="checkbox" name="showcartmenu" value="0"<?php checked( isset( $cartoptions['showcartmenu'] ) ); ?> /></h3>
 			</div>
 
 			<br><h3>5. Debugging and Testing.</h3>

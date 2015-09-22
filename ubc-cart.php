@@ -425,7 +425,10 @@ class UBC_CART extends GFAddOn
 			$cart[ $itemnum - 1 ]['prodquantity'] --;
 			$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
 			$colstr = $cartoptions['cartColumns'];
-			$colarr = explode( ',',$colstr );
+			$colarr = array();
+			if ( ! empty( $colstr ) ) {
+				$colarr = explode( ',',$colstr );
+			}
 			$quantcol = array_search( 'prodquantity',$colarr );
 			$jsaction = 'reduce';
 		} else {
@@ -639,7 +642,10 @@ class UBC_CART extends GFAddOn
 		//**********************************
 		$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
 		$colstr = $cartoptions['cartColumns'];
-		$colarr = explode( ',',$colstr );
+		$colarr = array();
+		if ( ! empty( $colstr ) ) {
+			$colarr = explode( ',',$colstr );
+		}
 		$columns = array();
 		$order = array();
 		foreach ( $colarr as $key => $coltxt ) {
@@ -1026,7 +1032,10 @@ class UBC_CART extends GFAddOn
 			$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
 			$cartpid = $cartoptions['cartpid'];
 			$colstr = $cartoptions['cartColumns'];
-			$colarr = explode( ',',$colstr );
+			$colarr = array();
+			if ( ! empty( $colstr ) ) {
+				$colarr = explode( ',',$colstr );
+			}
 			$columns = array();
 			if ( ! GFCommon::is_form_editor() ) {
 				$edit_cart_link = "<a href='".get_permalink( $cartpid )."' style='float:right;margin:0.625em 10% 0.5em;line-height:1.3;font-weight:700;'>Edit Cart</a>";
@@ -1185,7 +1194,10 @@ class UBC_CART extends GFAddOn
 		//**********************************
 		$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
 		$colstr = $cartoptions['cartColumns'];
-		$colarr = explode( ',',$colstr );
+		$colarr = array();
+		if ( ! empty( $colstr ) ) {
+			$colarr = explode( ',',$colstr );
+		}
 		$columns = array();
 		$order = array();
 		foreach ( $colarr as $key => $coltxt ) {
