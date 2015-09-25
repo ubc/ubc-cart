@@ -60,7 +60,7 @@ class UBC_CART extends GFAddOn
 		$this->includes();
 
 		//Setup Custom Post Type
-		$this->createUBCProductsType();
+		$this-> createUBCProductsType();
 
 		// load custom archive template for ubc_product
 		add_filter( 'template_include', array( &$this, 'ubc_product_template' ) );
@@ -199,6 +199,9 @@ class UBC_CART extends GFAddOn
 
 		//Save Cart Label
 		add_action( 'wp_ajax_cart_savename_action', array( &$this, 'cart_savename_action_ajax_handler' ) );
+
+		//Reset Cart Settings
+		add_action( 'wp_ajax_cart_reset_settings_action', array( &$this, 'cart_reset_settings_action_ajax_handler' ) );
 	}
 
 	// -- Function Name : cart_script
@@ -243,9 +246,26 @@ class UBC_CART extends GFAddOn
 					'cart_filter_action_nonce' => wp_create_nonce( 'cart_filter_action' ),
 					'cart_menu_action_nonce' => wp_create_nonce( 'cart_menu_action' ),
 					'cart_savename_action_nonce' => wp_create_nonce( 'cart_savename_action' ),
+					'cart_reset_settings_action_nonce' => wp_create_nonce( 'cart_reset_settings_action' ),
 					'pluginsUrl' => plugins_url(),
 					)
 				);
+		}
+	}
+
+	// -- Function Name : cart_reset_settings_action_ajax_handler
+	// -- Params : None
+	// -- Purpose : Resets options on settings page to default.
+	// --
+	public function cart_reset_settings_action_ajax_handler( ) {
+		if ( wp_verify_nonce( $_POST['cart_reset_settings_action_nonce'], 'cart_reset_settings_action' ) ) {
+			//**********************************
+			//*    RESET CART OPTIONS                *
+			//**********************************;
+			if ( $this->admin_settings->is_cartoption_valid( $this->admin_settings->default_options ) ) {
+				update_option( 'ubc_cart_options' , $this->admin_settings->default_options );
+			}
+			die();
 		}
 	}
 
@@ -261,10 +281,11 @@ class UBC_CART extends GFAddOn
 			//**********************************;
 			$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
 			$cartoptions['cartname'] = $cartname;
-			$this->set_cart_page();
 			if ( $this->admin_settings->is_cartoption_valid( $cartoptions ) ) {
 				update_option( 'ubc_cart_options' , $cartoptions );
 			}
+			// Now change the page title
+			$this->set_cart_page();
 			die();
 		}
 	}
@@ -281,29 +302,53 @@ class UBC_CART extends GFAddOn
 				$locations = get_nav_menu_locations();
 				$itemtitle = $cartoptions['cartname'];
 				$itempid = $cartoptions['cartpid'];
-				if ( isset( $locations['primary'] ) ) {
-							$menu_id = $locations['primary'];
-							$new_menu_obj = array();
-							$cartmenu = wp_update_nav_menu_item($menu_id, 0,  array(
-										'menu-item-title' => $itemtitle,
-										'menu-item-object' => 'page',
-										'menu-item-parent-id' => '',
-										'menu-item-object-id' => $itempid,//get_page_by_path( $itemslug )->ID,
-										'menu-item-type' => 'post_type',
-										'menu-item-status' => 'publish',
-							) );
-				} else {
-						$cartmenu = '';
+				if ( ! isset( $locations['primary'] ) ) {
+					//Check if 'Mainmenu' exists
+					$menu_obj = wp_get_nav_menu_object( 'Mainmenu' );
+					if ( ! $menu_obj ) {
+						$menu_id = wp_create_nav_menu( 'Mainmenu' );
+					} else {
+						$menu_id = $menu_obj->term_id;
+					}
+						$locations = get_theme_mod( 'nav_menu_locations' );
+						$locations['primary'] = $menu_id;
+						set_theme_mod( 'nav_menu_locations', $locations );
+				} else { //primary exists
+					//Does primary not have a menu assigned? Create if needed and assign.
+					if ( ! has_nav_menu( 'primary' ) ) {
+						//Check if 'Mainmenu' exists
+						$menu_obj = wp_get_nav_menu_object( 'Mainmenu' );
+						if ( ! $menu_obj ) {
+							$menu_id = wp_create_nav_menu( 'Mainmenu' );
+						} else {
+							$menu_id = $menu_obj->term_id;
+						}
+							$locations = get_theme_mod( 'nav_menu_locations' );
+							$locations['primary'] = $menu_id;
+						set_theme_mod( 'nav_menu_locations', $locations );
+					}
 				}
+				$menu_id = $locations['primary'];
+				$new_menu_obj = array();
+				$cartmenu = wp_update_nav_menu_item($menu_id, 0,  array(
+					'menu-item-title' => $itemtitle,
+					'menu-item-object' => 'page',
+					'menu-item-parent-id' => '',
+					'menu-item-object-id' => $itempid,//get_page_by_path( $itemslug )->ID,
+					'menu-item-type' => 'post_type',
+					'menu-item-status' => 'publish',
+				) );
 			} else {
 				wp_delete_post( $cartoptions['showcartmenu'] );
+				$cartmenu = '';
 			}
 			$cartoptions['showcartmenu'] = $cartmenu;
-			update_option( 'ubc_cart_options', $cartoptions );
+			if ( $this->admin_settings->is_cartoption_valid( $cartoptions ) ) {
+				update_option( 'ubc_cart_options', $cartoptions );
+			}
 			die();
 		}
 	}
-
 	// -- Function Name : cart_filter_action_ajax_handler
 	// -- Params : None
 	// -- Purpose : Toggles the UBC Product Type taxonomy filter
@@ -389,27 +434,38 @@ class UBC_CART extends GFAddOn
 		$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
 		$cartpid = $cartoptions['cartpid'];
 		$cartname = $cartoptions['cartname'];
+		$showcartmenu = $cartoptions['showcartmenu'];
 		$cart_shortcode = '[show-cart]';
 		$page = get_post( $cartpid );
-		if ( is_null( $page )|| $page->post_status != 'publish' ) {
-			global $user_ID;
-			$page->post_type    = 'page';
-			$page->post_content = $cart_shortcode;
-			$page->post_parent  = 0;
-			$page->post_author  = $user_ID;
-			$page->post_status  = 'publish';
-			$page->post_title   = $cartname;
-			$page = apply_filters( 'ubc_cart_add_new_page', $page, 'teams' );
-			$pageid = wp_insert_post( $page );
+		if ( is_null( $page ) || $page->post_status != 'publish' ) {
+			$cart_post = array(
+				  'post_title'    => $cartname,
+				  'post_content'  => $cart_shortcode,
+				  'post_status'   => 'publish',
+				'post_type'   => 'page',
+			);
+			$pageid = wp_insert_post( $cart_post );
 			if ( 0 != $pageid ) {
 				$cartoptions['cartpid'] = $pageid;
 				update_option( 'ubc_cart_options', $cartoptions );
 			}
-		} else { //page exists
+		} else {
 			$page->post_title   = $cartname;
 			$page->post_content = $cart_shortcode;
 			wp_update_post( $page );
 		}
+		if ( $showcartmenu ) {
+			$menu_id = $locations['primary'];
+			$cartmenu = wp_update_nav_menu_item($menu_id, $showcartmenu,  array(
+				'menu-item-title' => $cartname,
+				'menu-item-object' => 'page',
+				'menu-item-parent-id' => '',
+				'menu-item-object-id' => $cartpid,//get_page_by_path( $itemslug )->ID,
+				'menu-item-type' => 'post_type',
+				'menu-item-status' => 'publish',
+			) );
+		}
+
 	}
 
 	// -- Function Name : cart_delete_item_action_ajax_handler
@@ -425,12 +481,11 @@ class UBC_CART extends GFAddOn
 			$cart[ $itemnum - 1 ]['prodquantity'] --;
 			$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
 			$colstr = $cartoptions['cartColumns'];
-			$colarr = array();
 			if ( ! empty( $colstr ) ) {
 				$colarr = explode( ',',$colstr );
+				$quantcol = array_search( 'prodquantity',$colarr );
+				$jsaction = 'reduce';
 			}
-			$quantcol = array_search( 'prodquantity',$colarr );
-			$jsaction = 'reduce';
 		} else {
 			//Remove itemnum from cart - remember index starts at 1
 			array_splice( $cart,($itemnum - 1),1 );
@@ -664,18 +719,18 @@ class UBC_CART extends GFAddOn
 				}
 			}
 		}
-		$cart_display = '<div class="cartinput_container cartinput_list"><h3><i class="icon-shopping-cart"></i> Cart Details</h3><table class="cartfield_list">';
-		$cart_display .= '<colgroup>';
+		$cart_display = '<div class="cartinput_container cartinput_list"><h3><i class="icon-shopping-cart"></i> Cart Details</h3>';
+		$cart_display .= '<table class="cartfield_list"><colgroup>';
 		for ( $colnum = 1; $colnum <= count( $columns ) + 1; $colnum++ ) {
 				$odd_even = ( $colnum % 2 ) == 0 ? 'even' : 'odd';
-				$cart_display .= sprintf( "<col style='text-align:left;' id='cartfield_list_%d_col_%d' class='cartfield_list_col_%s' />", $field_id, $colnum, $odd_even );
+				$cart_display .= sprintf( "<col id='cartfield_list_%d_col_%d' class='cartfield_list_col_%s' />", $field_id, $colnum, $odd_even );
 		}
 		$cart_display .= '</colgroup>';
 		$cart_display .= '<thead><tr>';
 		foreach ( $columns as $column ) {
-				$cart_display .= "<th style='text-align:left;'>" . $column['text'] . '</th>';
+				$cart_display .= "<th class='".$column['text']."-header'>" . $column['text'] . '</th>';
 		}
-		$cart_display .= "<th style='width:16px;'>&nbsp;&nbsp;</th></tr></thead>";
+		$cart_display .= '<th>&nbsp;&nbsp;</th></tr></thead>';
 		$cart_display .= '<tbody>';
 		$rownum = 1;
 		$maxcolnum = count( $columns );
@@ -685,11 +740,12 @@ class UBC_CART extends GFAddOn
 				$cart_display .= "<tr class='cartfield_list_row_{$odd_even}'>";
 				$colnum = 0;
 				foreach ( $item as $key => $column ) {
-					$cart_display .= "<td class='cartfield_list_cell'><input class='".$colarr[ $colnum ]."' type='text' name='username' value='{$column}' readonly></td>";
+					//$cart_display .= "<td class='cartfield_list_cell'><input class='".$colarr[ $colnum ]."' type='text' name='username' value='{$column}' readonly></td>";
+					$cart_display .= "<td class='".$colarr[ $colnum ]."-cell'><p>".$column.'</p></td>';
 					$colnum++;
 					if ( $colnum == $maxcolnum ) { break;}
 				}
-				$cart_display .= "<td class='cartfield_list_icons' style='width:16px;display:block;'>";
+				$cart_display .= "<td class='cartfield_list_icons'>";
 				$cart_display .= "<img  src='".plugins_url( 'gravityforms/images/remove.png' )."' title='Remove this row' class='delete_list_item' style='cursor:pointer;width:16px;height:16px;' onclick='cart_delete_item(this, {$rownum},false)' />";
 				$cart_display .= '</td></tr>';
 				$rownum++;
@@ -699,7 +755,11 @@ class UBC_CART extends GFAddOn
 			//$cart_display .= "<tr><td colspan='".count( $columns )."' class='gfield_list_cell gfield_list_{$field_id}_cell0'>" .'<input type="text" style="color:red;width:100%;text-align:center;" name="input_{$field_id}" value="Empty Cart"  readonly/>' . '</td></tr>';
 			$cart_display .= '<tr><td colspan="'.count( $columns ).'" class="gfield_list_cell gfield_list_{$field_id}_cell0"><input type="text" style="color:red;width:100%;text-align:center;" name="input_{$field_id}" value="Empty Cart"  readonly/></td></tr>';
 		}
-		$cart_display .= "</tbody></table><p style='font-size:10px;margin-top:-5px;'>sid = ".$this->cart_calculate_total( true ).':'.$sessionid.'</p></div>';
+		$tagline = '';
+		if ( class_exists( 'UBC_CBM' ) ) {
+			$tagline = "<p style='font-size:10px;margin-top:-5px;'>Total = ".$this->cart_calculate_total( true ).'</p>';
+		}
+		$cart_display .= '</tbody></table>'.$tagline.'</div>';
 		$cart_display .= '<button onclick="window.location.href=\''.site_url( '/checkout/' ).'\'" class="button-primary btn-info"><i class="icon-circle-arrow-right"></i> Checkout</button><button class="button-primary btn-info" onclick="deletecart()" ><i class="icon-trash"></i> Reset Cart</button>';
 		global $allowedposttags;
 		$allowedposttags['input'] = array( 'class' => array(),'readonly' => array(),'value' => array(), 'type' => array() );
@@ -748,6 +808,7 @@ class UBC_CART extends GFAddOn
 		// create a product custom post type
 		$ubcproducts = new UBCCARTCPT( 'ubc_product' , array(
 									'supports' => array( 'title', 'editor', 'thumbnail', 'comments', 'excerpt' ),
+									'taxonomies' => array( 'post_tag' ),
 									'has_archive' => true,
 		) );
 		// create a genre taxonomy

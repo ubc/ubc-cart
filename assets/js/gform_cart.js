@@ -185,6 +185,10 @@ function savecartname(){
 		dataType: 'html',
 		success: function(response){
 			alert(response);
+			jQuery('#status_cartname').text("Cart page exists so, clicking save will change the page title.");
+			//change status on settings page to "Cart page exists so, clicking save will change the page title."
+			jQuery('#cartmenu_chk').removeAttr("disabled");
+			jQuery('#cartmenu_option').show();
 			jQuery('#spinner').remove();
 		}
 	 });
@@ -201,6 +205,20 @@ function deletecart(){
 			 beforeSend: function(){},
 			 dataType: 'html',
 			 success: function(response){jQuery('#cart-details').html('<p>'+ response +'</p>');}
+	 });
+	 return false;
+}//
+
+// -- reset_settings - reset to defaults
+function reset_settings(){
+	 jQuery.ajax({
+			 url: cart_script_vars.ajaxurl,
+			 type: 'POST',
+			 data: {action: 'cart_reset_settings_action',cart_reset_settings_action_nonce: cart_script_vars.cart_reset_settings_action_nonce},
+			 error: function(jqXHR, textStatus) {alert(textStatus);},
+			 beforeSend: function(){},
+			 dataType: 'html',
+			 success: function(response){alert('settings reset')}
 	 });
 	 return false;
 }

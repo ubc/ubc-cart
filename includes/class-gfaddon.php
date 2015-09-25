@@ -42,7 +42,7 @@ if ( class_exists( 'GFForms' ) ) {
 		// -- Purpose : Validates columns
 		public function is_columns_valid($columnsoptionStr) {
 			$columns = array();
-			if (!empty($columnsoptionStr)){
+			if ( ! empty( $columnsoptionStr ) ) {
 				$columns = explode( ',', $columnsoptionStr );
 			}
 			$i = substr_count( $columnsoptionStr, ',' );
@@ -137,11 +137,11 @@ if ( class_exists( 'GFForms' ) ) {
 			$cartoptions = get_option( 'ubc_cart_options', $this->default_options );
 			$cartoptions['ubcepayment'] = true;
 			$cartarrOn = array();
-			if (!empty($cartoptions['cartColumns'])){
+			if ( ! empty( $cartoptions['cartColumns'] ) ) {
 				$cartarrOn = explode( ',', $cartoptions['cartColumns'] );
 			}
 			$cartarrOff = array();
-			if (!empty($cartoptions['cartColumnsoff'])){
+			if ( ! empty( $cartoptions['cartColumnsoff'] ) ) {
 				$cartarrOff = explode( ',', $cartoptions['cartColumnsoff'] );
 			}
 			if ( ! ( in_array( 'prodprice', $cartarrOn ) || in_array( 'prodprice', $cartarrOff ) ) ) {
@@ -162,11 +162,11 @@ if ( class_exists( 'GFForms' ) ) {
 			$cartoptions = get_option( 'ubc_cart_options', $this->default_options );
 			$cartoptions['ubcepayment'] = false;
 			$cartarrOn = array();
-			if (!empty($cartoptions['cartColumns'])){
+			if ( ! empty( $cartoptions['cartColumns'] ) ) {
 				$cartarrOn = explode( ',', $cartoptions['cartColumns'] );
 			}
 			$cartarrOff = array();
-			if (!empty($cartoptions['cartColumnsoff'])){
+			if ( ! empty( $cartoptions['cartColumnsoff'] ) ) {
 				$cartarrOff = explode( ',', $cartoptions['cartColumnsoff'] );
 			}
 			if ( in_array( 'prodprice', $cartarrOn ) ) {
