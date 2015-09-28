@@ -108,7 +108,7 @@ if ( class_exists( 'GFForms' ) ) {
 		// -- Params : postid
 		// -- Purpose : Check if valid postid and nothing else
 		public function is_cartpid_valid($value) {
-			if ( is_int( $value ) ) {
+			if ( '' == $value || is_int( $value ) ) {
 				return true;
 			} else {
 				return false;
@@ -356,9 +356,63 @@ if ( ! empty( $colstr ) ) {
 
 			<br><h3>4. Cart Settings.</h3>
 			<div style="width:100%" class="panel-instructions">
+			<?php
+			$str1 = '';
+			$ptitle = $cartoptions['cartname'];
+			$page = get_post( $cartoptions['cartpid'] );
+			if ( is_null( $page ) ) {
+				$str1 = 'Cart page does not exist (or not assigned) so, clicking save will create a new page with the given title.';
+			} else {
+				$str1 = 'Cart page exists so, clicking save will change the page title.';
+			}
+
+			?>
+				<p id="status_cartname"><?php echo esc_html( $str1 ); ?></p>
 				<h3>Cart Name/Label?. <input id="cartname" style="font-weight:normal;" type="text" name="cartname" value="<?php echo esc_html( $cartoptions['cartname'] ); ?>" />
 				<a style="font-weight:normal;" class="button-primary" type="button" onclick="savecartname()">Save</a></h3>
-				<h3>Do you want to show the Cart in the primary menu?. <input id="cartmenu_chk" type="checkbox" name="showcartmenu" value="0"<?php checked( isset( $cartoptions['showcartmenu'] ) ); ?> /></h3>
+
+			<?php
+			$str2 = '';
+			$locations = get_nav_menu_locations();
+			if ( ! isset( $locations['primary'] ) ) {
+				$str2 = 'Location "primary" does not exist so, clicking the checkbox will create the location';
+				//Does Mainmenu exist
+				$menu_obj = wp_get_nav_menu_object( 'Mainmenu' );
+				if ( ! $menu_obj ) {
+					$str2 .= ' and Mainmenu does not exist exist either - location primary will be created, a menu Mainmenu will be created and assigned to primary - the item will be added to the menu.';
+				} else {
+					$str2 .= ' but, Mainmenu exists - location primary will be created, and Mainmenu will be assigned to primary - the item will be added to the menu.';
+				}
+			} else {
+				$str2 = 'Location "primary" exists';
+				//Check if primary does not already have a menu assigned then assign this
+				if ( ! has_nav_menu( 'primary' ) ) { //HOLD ON Mainmenu may exist
+					$menu_obj = wp_get_nav_menu_object( 'Mainmenu' );
+					if ( ! $menu_obj ) {
+						$str2 .= ' but, does not have a menu assigned - a menu called Mainmenu will be created and assigned to primary - the item will be placed into this menu';
+					} else {
+						$str2 .= ' but, does not have a menu assigned - a menu called Mainmenu exists and will be assigned to primary - the item will be placed into this menu';
+					}
+				} else {
+					$str2 .= ' and has a menu assigned - the item will be added to the menu.';
+				}
+			}
+				//checkbox disabled until page exists
+			if ( is_null( $page ) ) {
+				$cartoptions['showcartmenu'] = ''; //Need to save this option.
+				if ( $this->is_cartoption_valid( $cartoptions ) ) {
+					update_option( 'ubc_cart_options', $cartoptions );
+				}
+				$disabled = 'disabled';
+				echo '<style>#cartmenu_option{display:none;}</style>';
+			} else {
+				$disabled = '';
+				echo '<style>#cartmenu_option{display:block;}</style>';
+			}
+			?>
+				<span id="cartmenu_option"><p><?php echo esc_html( $str2 ); ?></p>
+				<h3>Do you want to show the Cart in the primary menu?.
+				<input id="cartmenu_chk" type="checkbox" name="showcartmenu" value="0"<?php checked( ! empty( $cartoptions['showcartmenu'] ) ); echo esc_html( $disabled ) ?> /></h3></span>
 			</div>
 
 			<br><h3>5. Debugging and Testing.</h3>
@@ -374,6 +428,7 @@ if ( ! empty( $colstr ) ) {
 				<a href="#" class="button-primary" onclick="addtocart()">Add to Cart</a>
 				<a href="#" class="button-primary" onclick="showcart()">Show Cart</a>
 				<a href="#" class="button-primary" onclick="deletecart()">Delete Cart</a>
+				<a href="#" class="button-primary" onclick="reset_settings()">Reset Settings to Default</a>
 				<a href="<?php echo esc_url( site_url( '/checkout/' ) ); ?>" class="button-primary" style="margin-left:20px;">Go to Checkout</a>
 				<div id="cart-details"></div>
 			</div>
