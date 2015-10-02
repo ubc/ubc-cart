@@ -208,6 +208,10 @@ class UBC_CART extends GFAddOn
 	// -- Params : None
 	// -- Purpose : Add plugin JS (Frontend). All ajax actions nonced.
 	function cart_script( $skip = false ) {
+		$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
+		if ( $cartoptions['showcartmenu'] != '' ) {
+			$skip = true;
+		}
 		if ( ( ( is_single()||is_archive() ) && get_post_type( ) == 'ubc_product' ) || $skip ) {
 			$url = plugins_url( '/assets/js/gform_cart.js' , __FILE__ );
 			wp_enqueue_script( 'cart_script', $url , array( 'jquery' ), '1.0' );
@@ -219,6 +223,8 @@ class UBC_CART extends GFAddOn
 					'cart_delete_action_nonce' => wp_create_nonce( 'cart_delete_action' ),
 					'cart_delete_item_action_nonce' => wp_create_nonce( 'cart_delete_item_action' ),
 					'pluginsUrl' => plugins_url( ),
+					'cartmenu' => $cartoptions['showcartmenu'],
+					'cartitems' => $this->cart_calculate_items(),
 				)
 			);
 		}
@@ -334,6 +340,7 @@ class UBC_CART extends GFAddOn
 					'menu-item-title' => $itemtitle,
 					'menu-item-object' => 'page',
 					'menu-item-parent-id' => '',
+					'menu_class' => 'cart_menu_item',
 					'menu-item-object-id' => $itempid,//get_page_by_path( $itemslug )->ID,
 					'menu-item-type' => 'post_type',
 					'menu-item-status' => 'publish',
@@ -493,7 +500,7 @@ class UBC_CART extends GFAddOn
 		}
 		$this->session->set( 'ubc-cart',$cart );
 		$data_for_javascript = $jsaction.'*'.$quantcol.'*'.$itemnum;
-		echo wp_kses_post( $data_for_javascript.'*'.$this->create_table() );
+		echo wp_kses_post( $data_for_javascript.'*'.$this->create_table().'*'.$this->cart_calculate_items( ) );
 		die();
 	}
 
@@ -606,7 +613,7 @@ class UBC_CART extends GFAddOn
 			}
 			$this->session->set( 'ubc-cart',$cart );
 			$data_for_javascript = 'Added to cart - '.serialize( $this->session );
-			echo wp_kses_post( $this->create_table() );
+			echo wp_kses_post( $this->create_table().'*'.$this->cart_calculate_items( ) );
 			die();
 		}
 	}
@@ -686,12 +693,25 @@ class UBC_CART extends GFAddOn
 		}
 	}
 
+	// -- Function Name : cart_calculate_items
+	// -- Purpose : Calculates the number of items in the cart (item)
+	public function cart_calculate_items(  ) {
+		$cart_items = 0;
+		$cart = $this->session->get( 'ubc-cart' );
+		if ( $cart ) {
+			foreach ( $cart as $cartrow => $itemrow ) {
+				$cart_items = $cart_items + ($itemrow['prodquantity']);
+			}
+		}
+		return $cart_items;
+	}
+
 	// -- Function Name : create_table
 	// -- Params : None
 	// -- Purpose : Sets up the cart data in table format for display
 	private function create_table( ) {
-		$field_id = 4;
 		$sessionid = $this->session->get_id();
+		$reset_margin = '26';
 		//**********************************
 		//*    CART OPTIONS                *
 		//**********************************
@@ -721,27 +741,25 @@ class UBC_CART extends GFAddOn
 		}
 		$cart_display = '<div class="cartinput_container cartinput_list"><h3><i class="icon-shopping-cart"></i> Cart Details</h3>';
 		$cart_display .= '<table class="cartfield_list"><colgroup>';
-		for ( $colnum = 1; $colnum <= count( $columns ) + 1; $colnum++ ) {
-				$odd_even = ( $colnum % 2 ) == 0 ? 'even' : 'odd';
-				$cart_display .= sprintf( "<col id='cartfield_list_%d_col_%d' class='cartfield_list_col_%s' />", $field_id, $colnum, $odd_even );
+		for ( $colnum = 0; $colnum < count( $columns ); $colnum++ ) {
+				$cart_display .= '<col id="cartfield_list_col_'.$columns[ $colnum ]['text'].'" class="cartfield_list_col" />';
 		}
+		//$cart_display .= '<col class="cartfield_list_col_icon" />';
 		$cart_display .= '</colgroup>';
 		$cart_display .= '<thead><tr>';
 		foreach ( $columns as $column ) {
 				$cart_display .= "<th class='".$column['text']."-header'>" . $column['text'] . '</th>';
 		}
-		$cart_display .= '<th>&nbsp;&nbsp;</th></tr></thead>';
-		$cart_display .= '<tbody>';
+
 		$rownum = 1;
 		$maxcolnum = count( $columns );
 		if ( $value ) {
+			$cart_display .= '<th class="cartfield_list_col_icon">&nbsp;&nbsp;</th></tr></thead><tbody>';
 			foreach ( $value as $item ) {
-				$odd_even = ( $rownum % 2 ) == 0 ? 'even' : 'odd';
-				$cart_display .= "<tr class='cartfield_list_row_{$odd_even}'>";
+				$cart_display .= "<tr class='cartfield_list_row'>";
 				$colnum = 0;
 				foreach ( $item as $key => $column ) {
-					//$cart_display .= "<td class='cartfield_list_cell'><input class='".$colarr[ $colnum ]."' type='text' name='username' value='{$column}' readonly></td>";
-					$cart_display .= "<td class='".$colarr[ $colnum ]."-cell'><p>".$column.'</p></td>';
+					$cart_display .= "<td data-title='".$columns[$colnum]['text']."' class='".$colarr[ $colnum ]."-cell'><p>".$column.'</p></td>';
 					$colnum++;
 					if ( $colnum == $maxcolnum ) { break;}
 				}
@@ -752,17 +770,21 @@ class UBC_CART extends GFAddOn
 			}//foreach
 		} //empty cart
 		else {
-			//$cart_display .= "<tr><td colspan='".count( $columns )."' class='gfield_list_cell gfield_list_{$field_id}_cell0'>" .'<input type="text" style="color:red;width:100%;text-align:center;" name="input_{$field_id}" value="Empty Cart"  readonly/>' . '</td></tr>';
-			$cart_display .= '<tr><td colspan="'.count( $columns ).'" class="gfield_list_cell gfield_list_{$field_id}_cell0"><input type="text" style="color:red;width:100%;text-align:center;" name="input_{$field_id}" value="Empty Cart"  readonly/></td></tr>';
+			$reset_margin = '0';
+			$cart_display .= '<tbody>';
+			$cart_display .= '<tr><td colspan="'.count( $columns ).'" class="empty_cell">Your Cart is empty.</td></tr>';
 		}
 		$tagline = '';
 		if ( class_exists( 'UBC_CBM' ) ) {
-			$tagline = "<p style='font-size:10px;margin-top:-5px;'>Total = ".$this->cart_calculate_total( true ).'</p>';
+			$tagline = "<p style='font-size:10px;margin-top:-5px;'>Total = ".$this->cart_calculate_total( true ).' <a class="reset" style="margin-right:'.$reset_margin.'px;" onclick="deletecart()" >reset cart</a></p>';
+		} else {
+			$tagline = "<p style='font-size:10px;margin-top:-5px;'>Items = ".$this->cart_calculate_items( ).' <a class="reset" style="margin-right:'.$reset_margin.'px;" onclick="deletecart()" >reset cart</a></p>';
 		}
 		$cart_display .= '</tbody></table>'.$tagline.'</div>';
-		$cart_display .= '<button onclick="window.location.href=\''.site_url( '/checkout/' ).'\'" class="button-primary btn-info"><i class="icon-circle-arrow-right"></i> Checkout</button><button class="button-primary btn-info" onclick="deletecart()" ><i class="icon-trash"></i> Reset Cart</button>';
+		$cart_display .= '<button onclick="window.location.href=\''.site_url( '/checkout/' ).'\'" class="checkout">Checkout <i class="icon-chevron-right"></i><i class="icon-chevron-right"></i></button>';
 		global $allowedposttags;
 		$allowedposttags['input'] = array( 'class' => array(),'readonly' => array(),'value' => array(), 'type' => array() );
+		$allowedposttags['td'] = array( 'data-title' => array(), 'class' => array(), 'colspan' => array());
 		$allowedposttags['button'] = array( 'onclick' => array(),'style' => array(), 'class' => array() );
 		$allowedposttags['img'] = array( 'onclick' => array(),'class' => array(),'style' => array(),'title' => array(),'src' => array() );
 		return $cart_display;
@@ -866,7 +888,7 @@ class UBC_CART extends GFAddOn
 		//Load CSS for archive page
 		wp_register_style( 'ubc-product-styles', UBCCART_PLUGIN_URI . '/assets/css/demos.css' );
 		wp_register_style( 'ubc-product-styles', UBCCART_PLUGIN_URI . '/assets/css/layout.css' );
-
+		wp_enqueue_style( 'ubc-product-styles' );
 	}
 
 	// -- Function Name : ubc_product_enqueue_scripts

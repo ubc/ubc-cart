@@ -25,7 +25,10 @@ function chooseform(element){
 }
 
 jQuery( document ).ready(function() {
-
+	if (cart_script_vars.cartmenu != ''){
+		jQuery('li#menu-item-'+cart_script_vars.cartmenu+' a').attr('data-after',cart_script_vars.cartitems);
+		jQuery('<style>li#menu-item-'+cart_script_vars.cartmenu+' a:after{content: attr(data-after);color:red;margin-left:3px;}</style>').appendTo('head');
+	}
 	// -- sets the tax term from drop-down to be used as filter - option
 	jQuery('#cartfilter').on('change', function($) {
 		  //alert( this.value ); // or $(this).val()
@@ -59,8 +62,8 @@ jQuery( document ).ready(function() {
 				 },
 					 dataType: 'html',
 					 success: function(response){
-				jQuery('#spinner').remove();
-				 }
+						jQuery('#spinner').remove();
+					 }
 			 });
 			 return false;
 	});
@@ -115,10 +118,10 @@ function cartSelectColumns(reset) {
 // -- onform parameter to handle page refresh for calculation fields to work
 function cart_delete_item(element, itemnum, onform){
 	 rownum = jQuery(element).parent().parent().index() + 1;
-
 	 jQuery.ajax({
 			 url: cart_script_vars.ajaxurl,
 			 type: 'POST',
+			 async: false,
 			 data: {action: 'cart_delete_item_action',cart_delete_item_action_nonce: cart_script_vars.cart_delete_item_action_nonce,js_data_for_php: rownum},
 			 error: function(jqXHR, textStatus) {alert(textStatus);},
 			 beforeSend: function(){
@@ -126,31 +129,24 @@ function cart_delete_item(element, itemnum, onform){
 		 },
 			 dataType: 'html',
 			 success: function(response){
-		if (onform){
-			//addressid = jQuery('.chosen-single span').attr('id');
-			country = jQuery('a.chosen-single span').html();
-			window.location.href = window.location.pathname + '?country=' + country;
-			//location.reload(true);
-		}
-		else{
-			jQuery(element).attr('src', cart_script_vars.pluginsUrl +'/gravityforms/images/remove.png');
-			var resarr = response.split("*");
-			takeaction = resarr[0];
-			quantcol = resarr[1]*1 + 1;
-			itemrow = resarr[2];
-			if (takeaction == 'remove'){
-					var tr = jQuery('.gform_cart table.gfield_list tbody tr:nth-child('+ itemrow+')');
+				jQuery(element).attr('src', cart_script_vars.pluginsUrl +'/gravityforms/images/remove.png');
+				var resarr = response.split("*");
+				takeaction = resarr[0];
+				quantcol = resarr[1]*1 + 1;
+				itemrow = resarr[2];
+				if (takeaction == 'remove'){
+					var tr = jQuery('.cartfield_list tr:nth-child('+ itemrow+')');
 					tr.remove();
-			}
-			if (takeaction == 'reduce'){
-				var quantval = jQuery('.gform_cart table.gfield_list tbody tr:nth-child('+ itemrow+') td:nth-child('+quantcol+') input').val();
-				quantval-- ;
-				jQuery('.gform_cart table.gfield_list tbody tr:nth-child('+ itemrow+') td:nth-child('+quantcol+') input').val(quantval);
-			}
-			jQuery('#cart-details').html('<p>'+ resarr[3] +'</p>');
-		}
-
-		 }
+				}
+				if (takeaction == 'reduce'){
+					var quantval = jQuery('.cartfield_list tr:nth-child('+ itemrow+') td:nth-child('+quantcol+') ').html();
+					quantval-- ;
+					jQuery('.cartfield_list tr:nth-child('+ itemrow+') td:nth-child('+quantcol+')').html(quantval);
+				}
+				jQuery('#cart-details .cartinput_list').parent().html(resarr[3]);
+				cart_script_vars.cartitems = resarr[4];
+				jQuery('li#menu-item-'+cart_script_vars.cartmenu+' a').attr('data-after',cart_script_vars.cartitems);
+		 	}
 	 });
 	 return false;
 }
@@ -184,7 +180,7 @@ function savecartname(){
 		},
 		dataType: 'html',
 		success: function(response){
-			alert(response);
+			//alert(response);
 			jQuery('#status_cartname').text("Cart page exists so, clicking save will change the page title.");
 			//change status on settings page to "Cart page exists so, clicking save will change the page title."
 			jQuery('#cartmenu_chk').removeAttr("disabled");
@@ -204,7 +200,11 @@ function deletecart(){
 			 error: function(jqXHR, textStatus) {alert(textStatus);},
 			 beforeSend: function(){},
 			 dataType: 'html',
-			 success: function(response){jQuery('#cart-details').html('<p>'+ response +'</p>');}
+			 success: function(response){
+				jQuery('#cart-details').html('<p>'+ response +'</p>');
+				cart_script_vars.cartitems = 0; 
+				jQuery('li#menu-item-'+cart_script_vars.cartmenu+' a').attr('data-after',cart_script_vars.cartitems);
+			 }
 	 });
 	 return false;
 }//
@@ -229,6 +229,7 @@ function addtocart(obj,postid){
 	 jQuery.ajax({
 			 url: cart_script_vars.ajaxurl,
 			 type: 'POST',
+			 async: false,
 			 data: {
 		action: 'cart_add_action',
 		cart_add_action_nonce: cart_script_vars.cart_add_action_nonce,
@@ -237,13 +238,16 @@ function addtocart(obj,postid){
 			 error: function(jqXHR, textStatus) {alert(textStatus);},
 			 beforeSend: function(){
 				jQuery(obj).find('i').removeClass('icon-shopping-cart');
-				jQuery(obj).find('i').addClass('icon-spinner icon-spin');
+				jQuery(obj).prepend('<img style="width:11px;height:11px;" id="spinner" src="'+ cart_script_vars.pluginsUrl +'/ubc-cart/assets/img/ajax-loader.gif">');
 		 },
 			 dataType: 'html',
 			 success: function(response){
-				jQuery(obj).find('i').removeClass('icon-spinner icon-spin');
+				var resarr = response.split("*");
+				jQuery('#spinner').remove();
 				jQuery(obj).find('i').addClass('icon-shopping-cart');
-				jQuery('#cart-details').html('<p>'+ response +'</p>');
+				jQuery('#cart-details').html('<p>'+ resarr[0] +'</p>');
+				cart_script_vars.cartitems = resarr[1]; 
+				jQuery('li#menu-item-'+cart_script_vars.cartmenu+' a').attr('data-after',cart_script_vars.cartitems);
 		 }
 	 });
 	 return false;

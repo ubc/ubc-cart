@@ -471,7 +471,114 @@ text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
 .color-shape.wide, .color-shape.big { width: 150px; }
 .color-shape.tall, .color-shape.big { height: 150px; }
 
-#primary table.cartfield_list input {
-    border: medium none;
-    width: 65px;
+.cartfield_list{width:100%;border-collapse:collapse;border-top:none;}
+.cartfield_list th{padding:5px;text-align:left;border:1px solid rgba(51, 51, 51, 0.1)}
+th.cartfield_list_col_icon{width:26px;border:none;}
+.cartfield_list td{padding:5px;word-break: break-all;border:1px solid rgba(51, 51, 51, 0.1)}
+.cartfield_list td.cartfield_list_icons{border:none;}
+.cartfield_list_col_ID{width:15%;}
+.cartfield_list .empty_cell{color:red;}
+
+li.cart_menu_item a:before{content:"\f07a";font-family:fontawesome;margin-right:3px;font-size:16px;}
+a.reset{float:right;cursor:pointer;}
+
+li.cart_menu_item a:after{
+    background: #ffffff;
+    border-radius: 0.8em;
+    -moz-border-radius: 0.8em;
+    -webkit-border-radius: 0.8em;
+    color: red;
+    display: inline-block;
+    font-size: 0.65em;
+    font-weight: bold;
+    line-height: 1.65em;
+    margin-right: 5px;
+    text-align: center;
+    width: 1.65em; 
+    vertical-align:super;
+}
+
+/* BUTTON STUFF */
+button{
+    background: #123b5c none repeat scroll 0 0;
+    border: 0.4em solid rgba(255, 255, 255, 0.7);
+    border-radius: 30px;
+    box-shadow: none;
+    color: #fff;
+    display: inline-block;
+    font-style: normal;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    min-width: 130px;
+    padding: 0.35em 1.5em;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: background 200ms ease 0s;
+    height:40px;
+}
+
+button:hover{
+    background-color: #98b2c3;
+    border: 0.4em solid #98b2c3;
+    color: #002145;
+}
+
+/*just COLLAB*/
+/*#ubc7-unit-menu .nav-collapse li.cart_menu_item a{background-color:green;}*/
+.navbar .nav > li.cart_menu_item{float:right;margin-right:-15px;}
+.navbar .nav{width:100%;}
+
+/*responsive tables*/
+@media only screen and (max-width: 980px) {
+
+/*just COLLAB*/
+.navbar .nav > li.cart_menu_item{float:none;}
+    
+	/* Force table to not be like tables anymore */
+	.cartfield_list table, 
+    .cartfield_list thead, 
+	.cartfield_list tbody, 
+	.cartfield_list th, 
+	.cartfield_list td, 
+	.cartfield_list tr { 
+		display: block; 
+	}
+ 
+	/* Hide table headers (but not display: none;, for accessibility) */
+	.cartfield_list thead tr { 
+		position: absolute;
+		top: -9999px;
+		left: -9999px;
+	}
+ 
+	.cartfield_list tr { border: 1px solid #ccc; }
+ 
+	.cartfield_list td { 
+		/* Behave  like a "row" */
+		border: none;
+		border-bottom: 1px solid #eee; 
+		position: relative;
+		padding-left: 35%; 
+		white-space: normal;
+		text-align:left;
+	}
+ 
+	.cartfield_list td:before { 
+		/* Now like a table header */
+		position: absolute;
+		/* Top/left values mimic padding */
+		top: 6px;
+		left: 6px;
+		width: 45%; 
+		padding-right: 10px; 
+		white-space: nowrap;
+		text-align:left;
+		font-weight: bold;
+	}
+ 
+	/*
+	Label the data
+	*/
+	.cartfield_list td:before { content: attr(data-title);}
 }
