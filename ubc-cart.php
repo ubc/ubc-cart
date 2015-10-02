@@ -209,7 +209,7 @@ class UBC_CART extends GFAddOn
 	// -- Purpose : Add plugin JS (Frontend). All ajax actions nonced.
 	function cart_script( $skip = false ) {
 		$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
-		if ( $cartoptions['showcartmenu'] != '' ) {
+		if ( '' != $cartoptions['showcartmenu'] ) {
 			$skip = true;
 		}
 		if ( ( ( is_single()||is_archive() ) && get_post_type( ) == 'ubc_product' ) || $skip ) {
@@ -759,7 +759,7 @@ class UBC_CART extends GFAddOn
 				$cart_display .= "<tr class='cartfield_list_row'>";
 				$colnum = 0;
 				foreach ( $item as $key => $column ) {
-					$cart_display .= "<td data-title='".$columns[$colnum]['text']."' class='".$colarr[ $colnum ]."-cell'><p>".$column.'</p></td>';
+					$cart_display .= "<td data-title='".$columns[ $colnum ]['text']."' class='".$colarr[ $colnum ]."-cell'><p>".$column.'</p></td>';
 					$colnum++;
 					if ( $colnum == $maxcolnum ) { break;}
 				}
@@ -784,7 +784,7 @@ class UBC_CART extends GFAddOn
 		$cart_display .= '<button onclick="window.location.href=\''.site_url( '/checkout/' ).'\'" class="checkout">Checkout <i class="icon-chevron-right"></i><i class="icon-chevron-right"></i></button>';
 		global $allowedposttags;
 		$allowedposttags['input'] = array( 'class' => array(),'readonly' => array(),'value' => array(), 'type' => array() );
-		$allowedposttags['td'] = array( 'data-title' => array(), 'class' => array(), 'colspan' => array());
+		$allowedposttags['td'] = array( 'data-title' => array(), 'class' => array(), 'colspan' => array() );
 		$allowedposttags['button'] = array( 'onclick' => array(),'style' => array(), 'class' => array() );
 		$allowedposttags['img'] = array( 'onclick' => array(),'class' => array(),'style' => array(),'title' => array(),'src' => array() );
 		return $cart_display;
