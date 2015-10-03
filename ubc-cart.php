@@ -111,7 +111,7 @@ class UBC_CART extends GFAddOn
 			$cartoptions = get_option( 'ubc_cart_options' );
 			$filter_id = $cartoptions['filter'];
 			if ( has_term( $filter_id, 'ubc_product_type' ,$post->ID ) ) {
-				$content = the_post_thumbnail( array( 150, 150 ) ).$content . '<button style="color: white;height:30px;background-color: #49afcd;background-image: linear-gradient(to bottom, #5bc0de, #2f96b4);background-repeat: repeat-x;border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);border-radius: 4px; color: white;text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);" href="#" class="button-primary btn-info" onclick="addtocart(this,'.$post->ID.')"><i class="icon-shopping-cart"></i> Add to Cart</button><button style="display:inline-block;margin-left:20px;color: white;height:30px;background-color: #49afcd;background-image: linear-gradient(to bottom, #5bc0de, #2f96b4);background-repeat: repeat-x;border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);border-radius: 4px; color: white;text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);" onclick="window.location.href=\''.site_url( '/checkout/' ).'\'" class="button-primary btn-info"><i class="icon-circle-arrow-right"></i> Go to Checkout</button>';
+				$content = the_post_thumbnail( array( 150, 150 ) ).$content . '<button href="#" class="cartbtn" onclick="addtocart(this,'.$post->ID.')"><i class="icon-shopping-cart"></i> Add to Cart</button><button style="margin-left:5px;" onclick="window.location.href=\''.site_url( '/checkout/' ).'\'" class="cartbtn"><i class="icon-circle-arrow-right"></i> Go to Checkout</button>';
 			}
 		}
 		return $content;
@@ -225,6 +225,7 @@ class UBC_CART extends GFAddOn
 					'pluginsUrl' => plugins_url( ),
 					'cartmenu' => $cartoptions['showcartmenu'],
 					'cartitems' => $this->cart_calculate_items(),
+					'formid' => $cartoptions['formid'],
 				)
 			);
 		}
@@ -340,7 +341,7 @@ class UBC_CART extends GFAddOn
 					'menu-item-title' => $itemtitle,
 					'menu-item-object' => 'page',
 					'menu-item-parent-id' => '',
-					'menu_class' => 'cart_menu_item',
+					'menu-item-classes' => 'cart_menu_item',
 					'menu-item-object-id' => $itempid,//get_page_by_path( $itemslug )->ID,
 					'menu-item-type' => 'post_type',
 					'menu-item-status' => 'publish',
@@ -395,7 +396,7 @@ class UBC_CART extends GFAddOn
 				update_option( 'ubc_cart_options', $cartoptions );
 			}
 			//Set the option for formid here
-			$this->set_chkout_page();
+			$this->set_chkout_page($formid);
 			//$data_for_javascript = 'Switched Form almost - '.$formid;
 			//echo $data_for_javascript;
 			die();
@@ -406,12 +407,12 @@ class UBC_CART extends GFAddOn
 	// -- Params : None
 	// -- Purpose : Gets Form id to be used and switches the shortcode on the page
 	// -- If page doesn't exist creates a new page called 'Checkout'
-	private function set_chkout_page( ) {
+	private function set_chkout_page( $formid ) {
 		//**********************************
 		//*    CART OPTIONS                *
 		//**********************************
-		$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
-		$formid = $cartoptions['formid'];
+		//$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
+		//$formid = $cartoptions['formid'];
 		//Set shortcode string here
 		$form_shortcode = '[gravityform id="'.$formid.'" title="true" description="true"]';
 		$page = get_page_by_title( 'Checkout' );
@@ -430,6 +431,9 @@ class UBC_CART extends GFAddOn
 				$page->post_content = $form_shortcode;
 				wp_update_post( $page );
 			}
+		} else {
+			$page->post_content = $form_shortcode;
+			wp_update_post( $page );
 		}
 	}
 
@@ -467,6 +471,7 @@ class UBC_CART extends GFAddOn
 				'menu-item-title' => $cartname,
 				'menu-item-object' => 'page',
 				'menu-item-parent-id' => '',
+				'menu-item-classes' => 'cart_menu_item',
 				'menu-item-object-id' => $cartpid,//get_page_by_path( $itemslug )->ID,
 				'menu-item-type' => 'post_type',
 				'menu-item-status' => 'publish',
@@ -711,7 +716,7 @@ class UBC_CART extends GFAddOn
 	// -- Purpose : Sets up the cart data in table format for display
 	private function create_table( ) {
 		$sessionid = $this->session->get_id();
-		$reset_margin = '26';
+		$reset_margin = '36';
 		//**********************************
 		//*    CART OPTIONS                *
 		//**********************************
@@ -781,10 +786,11 @@ class UBC_CART extends GFAddOn
 			$tagline = "<p style='font-size:10px;margin-top:-5px;'>Items = ".$this->cart_calculate_items( ).' <a class="reset" style="margin-right:'.$reset_margin.'px;" onclick="deletecart()" >reset cart</a></p>';
 		}
 		$cart_display .= '</tbody></table>'.$tagline.'</div>';
-		$cart_display .= '<button onclick="window.location.href=\''.site_url( '/checkout/' ).'\'" class="checkout">Checkout <i class="icon-chevron-right"></i><i class="icon-chevron-right"></i></button>';
+		$cart_display .= '<button class="cartbtn" onclick="window.location.href=\''.site_url( '/checkout/' ).'\'" class="checkout">Checkout <i class="icon-chevron-right"></i><i class="icon-chevron-right"></i></button>';
 		global $allowedposttags;
 		$allowedposttags['input'] = array( 'class' => array(),'readonly' => array(),'value' => array(), 'type' => array() );
 		$allowedposttags['td'] = array( 'data-title' => array(), 'class' => array(), 'colspan' => array() );
+		$allowedposttags['a'] = array( 'onclick' => array(), 'style' => array(), 'href' => array(), 'class' => array() );
 		$allowedposttags['button'] = array( 'onclick' => array(),'style' => array(), 'class' => array() );
 		$allowedposttags['img'] = array( 'onclick' => array(),'class' => array(),'style' => array(),'title' => array(),'src' => array() );
 		return $cart_display;

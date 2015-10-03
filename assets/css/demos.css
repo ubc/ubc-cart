@@ -499,7 +499,7 @@ li.cart_menu_item a:after{
 }
 
 /* BUTTON STUFF */
-button{
+.cartbtn{
     background: #123b5c none repeat scroll 0 0;
     border: 0.4em solid rgba(255, 255, 255, 0.7);
     border-radius: 30px;
@@ -518,10 +518,22 @@ button{
     height:40px;
 }
 
-button:hover{
+.cartbtn:hover{
     background-color: #98b2c3;
     border: 0.4em solid #98b2c3;
     color: #002145;
+}
+
+.cartbtn.disabled,.cartbtn.disabled:hover{
+    background: gray;
+    border: 0.4em solid rgba(255, 255, 255, 0.7);
+    color:white;
+}
+
+.cartbtn.small{
+    font-size:smaller;
+    height:30px;
+    padding: 0.22em 1.0em;
 }
 
 /*just COLLAB*/

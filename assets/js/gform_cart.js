@@ -25,6 +25,7 @@ function chooseform(element){
 }
 
 jQuery( document ).ready(function() {
+	jQuery('#gform_'+cart_script_vars.formid+' #gform_submit_button_'+cart_script_vars.formid).addClass('cartbtn');
 	if (cart_script_vars.cartmenu != ''){
 		jQuery('li#menu-item-'+cart_script_vars.cartmenu+' a').attr('data-after',cart_script_vars.cartitems);
 		jQuery('<style>li#menu-item-'+cart_script_vars.cartmenu+' a:after{content: attr(data-after);color:red;margin-left:3px;}</style>').appendTo('head');
@@ -201,13 +202,13 @@ function deletecart(){
 			 beforeSend: function(){},
 			 dataType: 'html',
 			 success: function(response){
-				jQuery('#cart-details').html('<p>'+ response +'</p>');
+				jQuery('#cart-details .cartinput_list').parent().html('<p>'+ response +'</p>');
 				cart_script_vars.cartitems = 0; 
 				jQuery('li#menu-item-'+cart_script_vars.cartmenu+' a').attr('data-after',cart_script_vars.cartitems);
 			 }
 	 });
 	 return false;
-}//
+}
 
 // -- reset_settings - reset to defaults
 function reset_settings(){

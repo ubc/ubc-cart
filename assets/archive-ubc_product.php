@@ -48,12 +48,12 @@ if ($filter_option) $filter = $filter_option;
 ?>
 
 		<div id="mfilters">
-			<a  onclick="filterclick(this)" class="btn active" data-filter="*">show all</a>
+			<button onclick="filterclick(this)" class="cartbtn active" data-filter="*">show all</button>
 			<?php 
     				if ($filter_option)
-					echo '<a  onclick="filterclick(this)" class="btn" data-filter=".'.$filter.'">'.$filter_name.'</a>';
+					echo '<button  style="margin-left:5px;" onclick="filterclick(this)" class="cartbtn" data-filter=".'.$filter.'">'.$filter_name.'</button>';
 			?>
-<button style="display:inline-block;margin-left:20px;color: white;height:30px;background-color: #49afcd;background-image: linear-gradient(to bottom, #5bc0de, #2f96b4);background-repeat: repeat-x;border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);border-radius: 4px; color: white;text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);" onclick="window.location.href='<?php echo site_url('/checkout/'); ?>'" class="button-primary btn-info"><i class="icon-circle-arrow-right"></i> Go to Checkout</button>
+<button  style="margin-left:5px;" onclick="window.location.href='<?php echo site_url('/checkout/'); ?>'" class="cartbtn"><i class="icon-circle-arrow-right"></i> Go to Checkout</button>
 		</div>
 
 <?php if ( have_posts() ) : ?>
@@ -77,14 +77,14 @@ if ($filter_option) $filter = $filter_option;
 					<?php 
 						if ($filter_option){
 							if (in_array($filter_option,$terms_list)){
-								echo '<button style="margin:auto;text-align:center;font-size:11px;color: white;height:25px;background-color: #49afcd;background-image: linear-gradient(to bottom, #5bc0de, #2f96b4);background-repeat: repeat-x;border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);border-radius: 2px; color: white;text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);" href="#" class="button-primary btn-info" onclick="addtocart(this,'.$post->ID.')"><i class="icon-shopping-cart"></i> Add to Cart</button>';
+								echo '<button href="#" class="cartbtn small" onclick="addtocart(this,'.$post->ID.')"><i class="icon-shopping-cart"></i> Add to Cart</button>';
 							}
 							else{
-								echo '<button style="margin:auto;text-align:center;font-size:11px;color: white;height:25px;background-color: #cecece;background-image: linear-gradient(to bottom, #dedede, #cecece);background-repeat: repeat-x;border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);border-radius: 2px; color: white;text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);" href="#" class="button-primary btn-info" onclick=""><i class="icon-shopping-cart"></i> Add to Cart</button>';
+								echo '<button href="#" class="cartbtn disabled small" onclick=""><i class="icon-shopping-cart"></i> Add to Cart</button>';
 							}
 						}
 						else{
-							echo '<button style="margin:auto;text-align:center;font-size:11px;color: white;height:25px;background-color: #49afcd;background-image: linear-gradient(to bottom, #5bc0de, #2f96b4);background-repeat: repeat-x;border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);border-radius: 2px; color: white;text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);" href="#" class="button-primary btn-info" onclick="addtocart(this,'.$post->ID.')"><i class="icon-shopping-cart"></i> Add to Cart</button>';
+							echo '<button href="#" class="cartbtn small" onclick="addtocart(this,'.$post->ID.')"><i class="icon-shopping-cart"></i> Add to Cart</button>';
 						}
 					?>
 				</div><!-- .entry-summary -->
