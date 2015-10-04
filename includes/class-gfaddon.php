@@ -23,9 +23,9 @@ if ( class_exists( 'GFForms' ) ) {
 		protected $_url = 'http://www.gravityforms.com';
 		protected $_title = 'UBC Cart';
 		protected $_short_title = 'UBC Cart';
-		public $field_order = array( 'prodid', 'prodtitle', 'prodexcerpt', 'prodquantity', 'prodprice', 'prodshipping','prodshippingint' );
-		public $field_labels = array( 'ID', 'Title', 'Description', 'Quantity', 'Price', 'Shipping', 'Shipping (Int.)' );
-		public $default_options = array( 'cartColumns' => 'prodid', 'cartColumnsoff' => 'prodtitle,prodexcerpt,prodquantity', 'formid' => '0', 'filter' => '', 'ubcepayment' => false, 'showcartmenu' => '','cartname' => 'New Shopping Cart','cartpid' => '' );
+		public $field_order = array( 'prodid', 'prodtitle', 'prodexcerpt', 'prodquantity', 'prodmaxed', 'prodprice', 'prodshipping','prodshippingint' );
+		public $field_labels = array( 'ID', 'Title', 'Description', 'Quantity', 'Maxed', 'Price', 'Shipping', 'Shipping (Int.)' );
+		public $default_options = array( 'cartColumns' => 'prodid', 'cartColumnsoff' => 'prodtitle,prodexcerpt,prodquantity,prodmaxed', 'formid' => '0', 'filter' => '', 'ubcepayment' => false, 'showcartmenu' => '','cartname' => 'New Shopping Cart','cartpid' => '' );
 
 		// -- Function Name : init
 		// -- Params : None

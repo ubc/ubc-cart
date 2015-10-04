@@ -25,6 +25,12 @@ function chooseform(element){
 }
 
 jQuery( document ).ready(function() {
+	if (cart_script_vars.maxitems) {
+		maxidarr = cart_script_vars.maxitems.split(",");
+		for (i = 0; i < maxidarr.length; i++) { 
+			jQuery('#pid_'+maxidarr[i]).addClass('disabled');
+		} 
+	}
 	jQuery('#gform_'+cart_script_vars.formid+' #gform_submit_button_'+cart_script_vars.formid).addClass('cartbtn');
 	if (cart_script_vars.cartmenu != ''){
 		jQuery('li#menu-item-'+cart_script_vars.cartmenu+' a').attr('data-after',cart_script_vars.cartitems);
@@ -122,7 +128,6 @@ function cart_delete_item(element, itemnum, onform){
 	 jQuery.ajax({
 			 url: cart_script_vars.ajaxurl,
 			 type: 'POST',
-			 async: false,
 			 data: {action: 'cart_delete_item_action',cart_delete_item_action_nonce: cart_script_vars.cart_delete_item_action_nonce,js_data_for_php: rownum},
 			 error: function(jqXHR, textStatus) {alert(textStatus);},
 			 beforeSend: function(){
@@ -147,6 +152,8 @@ function cart_delete_item(element, itemnum, onform){
 				jQuery('#cart-details .cartinput_list').parent().html(resarr[3]);
 				cart_script_vars.cartitems = resarr[4];
 				jQuery('li#menu-item-'+cart_script_vars.cartmenu+' a').attr('data-after',cart_script_vars.cartitems);
+				if (resarr[5])
+					jQuery('#pid_'+resarr[5]).removeClass('disabled');
 		 	}
 	 });
 	 return false;
@@ -205,6 +212,7 @@ function deletecart(){
 				jQuery('#cart-details .cartinput_list').parent().html('<p>'+ response +'</p>');
 				cart_script_vars.cartitems = 0; 
 				jQuery('li#menu-item-'+cart_script_vars.cartmenu+' a').attr('data-after',cart_script_vars.cartitems);
+				jQuery('.cartbtn').removeClass('disabled');
 			 }
 	 });
 	 return false;
@@ -230,7 +238,6 @@ function addtocart(obj,postid){
 	 jQuery.ajax({
 			 url: cart_script_vars.ajaxurl,
 			 type: 'POST',
-			 async: false,
 			 data: {
 		action: 'cart_add_action',
 		cart_add_action_nonce: cart_script_vars.cart_add_action_nonce,
@@ -238,17 +245,23 @@ function addtocart(obj,postid){
 		 },
 			 error: function(jqXHR, textStatus) {alert(textStatus);},
 			 beforeSend: function(){
-				jQuery(obj).find('i').removeClass('icon-shopping-cart');
-				jQuery(obj).prepend('<img style="width:11px;height:11px;" id="spinner" src="'+ cart_script_vars.pluginsUrl +'/ubc-cart/assets/img/ajax-loader.gif">');
-		 },
+				if (!jQuery(obj).hasClass('disabled')){
+					jQuery(obj).find('i').removeClass('icon-shopping-cart');
+					jQuery(obj).find('i').addClass('icon-spinner icon-spin');
+				}
+		 	 },
 			 dataType: 'html',
 			 success: function(response){
 				var resarr = response.split("*");
-				jQuery('#spinner').remove();
-				jQuery(obj).find('i').addClass('icon-shopping-cart');
 				jQuery('#cart-details').html('<p>'+ resarr[0] +'</p>');
 				cart_script_vars.cartitems = resarr[1]; 
 				jQuery('li#menu-item-'+cart_script_vars.cartmenu+' a').attr('data-after',cart_script_vars.cartitems);
+				if (!jQuery(obj).hasClass('disabled')){
+					jQuery(obj).find('i').removeClass('icon-spinner icon-spin');
+					jQuery(obj).find('i').addClass('icon-shopping-cart');
+				}
+				if (resarr[2])
+					jQuery('#pid_'+resarr[2]).addClass('disabled');
 		 }
 	 });
 	 return false;

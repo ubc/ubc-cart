@@ -5,8 +5,8 @@ public $post_type;
 	public function __construct($post_type) {
 	require_once(ABSPATH .'wp-includes/pluggable.php');
 	$this->post_type = $post_type;
-		add_action( 'add_meta_boxes', array( $this, 'create_meta_box' ) );
-		add_filter( 'save_post', array( $this, 'save_meta_box' ), 10, 2 );
+	add_action( 'add_meta_boxes', array( $this, 'create_meta_box' ) );
+	add_filter( 'save_post', array( $this, 'save_meta_box' ), 10, 2 );
 	add_action( 'admin_notices', array( $this, 'printMessages') );
 	}
 
@@ -34,6 +34,11 @@ public $post_type;
 				if (!get_post_meta($post->ID, 'price', true) == '')
 					echo get_post_meta($post->ID, 'price', true);
 				else    echo '0.0'; ?>" class="regular-text"></td></tr>
+			<tr><th><label for="maxitems"><?php _e( 'Max items per cart', 'plugin-namespace' ); ?></label></th>
+			<td>&nbsp;&nbsp;&nbsp;<input name="maxitems" type="text" id="maxitems" value="<?php
+				if (!get_post_meta($post->ID, 'maxitems', true) == '')
+					echo get_post_meta($post->ID, 'maxitems', true);
+				else    echo '50'; ?>" class="regular-text"></td></tr>
 			<tr><th><label for="shipping"><?php _e( 'Shipping', 'plugin-namespace' ); ?></label></th>
 			<td>$<input name="shipping" type="text" id="shipping" value="<?php
 				if (!get_post_meta($post->ID, 'shipping', true) == '')
@@ -47,6 +52,7 @@ public $post_type;
 			</table>
 
 			<input type="hidden" name="<?php echo $metabox['id']; ?>_fields[]" value="price" />
+			<input type="hidden" name="<?php echo $metabox['id']; ?>_fields1[]" value="maxitems" />
 			<input type="hidden" name="<?php echo $metabox['id']; ?>_fields[]" value="shipping" />
 			<input type="hidden" name="<?php echo $metabox['id']; ?>_fields[]" value="shippingint" />
 		<?php
@@ -55,7 +61,7 @@ public $post_type;
 	public function printMessages(){
 		$error_flag = get_option( 'cartcf_error_flag', false );
 		if ($error_flag)
-			echo '<div class="error"><p>The price/shipping fields have to be numeric with no currency symbol and 2 decimals - the field has been reset to 0.</p></div>';
+			echo '<div class="error"><p>ERROR: The price/shipping fields have to be numeric with no currency symbol and 2 decimals - the field has been reset to 0 OR the maximum items per cart has to be an integer - field has been reset to 1.</p></div>';
 	}
 
 	public function save_meta_box( $post_id, $post ) {
@@ -75,17 +81,26 @@ public $post_type;
 				// Update or create the submitted contents of the fields as post meta data
 				// http://codex.wordpress.org/Function_Reference/update_post_meta
 
-		if( filter_var( $_POST[$field_id], FILTER_VALIDATE_FLOAT ) === FALSE ){
-			update_option( 'cartcf_error_flag', true );
-			update_post_meta($post_id, $field_id, '0.0');
-			}
-			else{
-			update_option( 'cartcf_error_flag', false );
-			$fmt = '%.2n';
-			update_post_meta($post_id, $field_id, money_format($fmt,$_POST[ $field_id ]));
-		}
+				if( filter_var( $_POST[$field_id], FILTER_VALIDATE_FLOAT ) === FALSE ){
+					update_option( 'cartcf_error_flag', true );
+					update_post_meta($post_id, $field_id, '0.0');
+				} else {
+					update_option( 'cartcf_error_flag', false );
+					$fmt = '%.2n';
+					update_post_meta($post_id, $field_id, money_format($fmt,$_POST[ $field_id ]));
+				}
 
 			}
+			foreach( $_POST[ $metabox_id . '_fields1' ] as $field_id ){
+				if( filter_var( $_POST[$field_id], FILTER_VALIDATE_INT ) === FALSE ){
+					update_option( 'cartcf_error_flag', true );
+					update_post_meta($post_id, $field_id, '1');
+				} else{
+					update_option( 'cartcf_error_flag', false );
+					update_post_meta($post_id, $field_id, $_POST[ $field_id ]);
+				}
+			}
+
 		}
 
 		return $post;

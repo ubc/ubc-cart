@@ -111,7 +111,7 @@ class UBC_CART extends GFAddOn
 			$cartoptions = get_option( 'ubc_cart_options' );
 			$filter_id = $cartoptions['filter'];
 			if ( has_term( $filter_id, 'ubc_product_type' ,$post->ID ) ) {
-				$content = the_post_thumbnail( array( 150, 150 ) ).$content . '<button href="#" class="cartbtn" onclick="addtocart(this,'.$post->ID.')"><i class="icon-shopping-cart"></i> Add to Cart</button><button style="margin-left:5px;" onclick="window.location.href=\''.site_url( '/checkout/' ).'\'" class="cartbtn"><i class="icon-circle-arrow-right"></i> Go to Checkout</button>';
+				$content = the_post_thumbnail( array( 150, 150 ) ).$content . '<button id="pid_'.$post->ID.'" href="#" class="cartbtn" onclick="addtocart(this,'.$post->ID.')"><i class="icon-shopping-cart"></i> Add to Cart</button><button style="margin-left:5px;" onclick="window.location.href=\''.site_url( '/checkout/' ).'\'" class="cartbtn"><i class="icon-circle-arrow-right"></i> Go to Checkout</button>';
 			}
 		}
 		return $content;
@@ -226,6 +226,7 @@ class UBC_CART extends GFAddOn
 					'cartmenu' => $cartoptions['showcartmenu'],
 					'cartitems' => $this->cart_calculate_items(),
 					'formid' => $cartoptions['formid'],
+					'maxitems' => $this->cart_calculate_maxitems(),
 				)
 			);
 		}
@@ -396,7 +397,7 @@ class UBC_CART extends GFAddOn
 				update_option( 'ubc_cart_options', $cartoptions );
 			}
 			//Set the option for formid here
-			$this->set_chkout_page($formid);
+			$this->set_chkout_page( $formid );
 			//$data_for_javascript = 'Switched Form almost - '.$formid;
 			//echo $data_for_javascript;
 			die();
@@ -488,9 +489,24 @@ class UBC_CART extends GFAddOn
 		$cart = $this->session->get( 'ubc-cart' );
 		$jsaction = '';
 		$quantcol = -100;
+		$maxpostid = '';
+		$theid = $cart[ $itemnum - 1 ]['prodid'];
+		$prodpost = get_post( $theid );
+		$post_meta_data = get_post_custom( $prodid );
+		if ( $prodpost && $prodpost->post_type == 'ubc_product' ) {
+			if ( array_key_exists( 'maxitems', $post_meta_data ) ) {
+				$maxitems = $post_meta_data['maxitems'][0];
+			} else {
+				$maxitems = '100';
+			}
+		}
 		//** Check if id exists in cart then **check for single
 		if ( $cart[ $itemnum - 1 ]['prodquantity'] > 1 ) {
 			$cart[ $itemnum - 1 ]['prodquantity'] --;
+			if ( $cart[ $itemnum - 1 ]['prodquantity'] < $maxitems ) {
+				$cart[ $itemnum - 1 ]['prodmaxed'] = 0;
+				$maxpostid = $theid;
+			}
 			$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
 			$colstr = $cartoptions['cartColumns'];
 			if ( ! empty( $colstr ) ) {
@@ -500,12 +516,16 @@ class UBC_CART extends GFAddOn
 			}
 		} else {
 			//Remove itemnum from cart - remember index starts at 1
+			//check for maxpostid quantity is 1
+			//if ($maxitems == 1) {
+				$maxpostid = $theid;
+			//}
 			array_splice( $cart,($itemnum - 1),1 );
 			$jsaction = 'remove';
 		}
 		$this->session->set( 'ubc-cart',$cart );
 		$data_for_javascript = $jsaction.'*'.$quantcol.'*'.$itemnum;
-		echo wp_kses_post( $data_for_javascript.'*'.$this->create_table().'*'.$this->cart_calculate_items( ) );
+		echo wp_kses_post( $data_for_javascript.'*'.$this->create_table().'*'.$this->cart_calculate_items( ).'*'.$maxpostid );
 		die();
 	}
 
@@ -568,6 +588,11 @@ class UBC_CART extends GFAddOn
 				} else {
 					$prodshippingint = '0.0';
 				}
+				if ( array_key_exists( 'maxitems', $post_meta_data ) ) {
+					$maxitems = $post_meta_data['maxitems'][0];
+				} else {
+					$maxitems = '100';
+				}
 			} else {
 				//check if taxonomy id for other special use cases
 				//In this case, check for IssueM plugin and issue_price in tax meta
@@ -589,6 +614,7 @@ class UBC_CART extends GFAddOn
 			$cart = $this->session->get( 'ubc-cart' );
 			if ( 'ubc_product' == $prodtype ) {
 				//** Check if id exists in cart then **check for single
+				$maxid = '';
 				$cartkey = false;
 				if ( $cart ) {
 					foreach ( $cart as $rkey => $crow ) {
@@ -601,12 +627,23 @@ class UBC_CART extends GFAddOn
 					}
 				}
 				if ( $cartkey ) {
-					$cart[ $cartkey - 1 ]['prodquantity'] ++;
+					if ( 1 != $cart[ $cartkey - 1 ]['prodmaxed'] ) {
+						$cart[ $cartkey - 1 ]['prodquantity'] ++;
+						if ( $cart[ $cartkey - 1 ]['prodquantity'] >= $maxitems ) {
+							$cart[ $cartkey - 1 ]['prodmaxed'] = 1;
+							$maxid = $cart[ $cartkey - 1 ]['prodid'];
+						}
+					}
 				} else {
+					$prodmaxed = 0;
+					if ( $maxitems <= 1 ) {
+							$prodmaxed = 1;
+							$maxid = $prodid;
+					}
 					if ( $cartoptions['ubcepayment'] ) {
-						$cart[] = array( 'prodid' => $prodid,'prodtitle' => $prodtitle,'prodexcerpt' => $prodexcerpt,'prodquantity' => '1','prodprice' => $prodprice, 'prodshipping' => $prodshipping, 'prodshippingint' => $prodshippingint );
+						$cart[] = array( 'prodid' => $prodid,'prodtitle' => $prodtitle,'prodexcerpt' => $prodexcerpt,'prodquantity' => '1','prodmaxed' => $prodmaxed,'prodprice' => $prodprice, 'prodshipping' => $prodshipping, 'prodshippingint' => $prodshippingint );
 					} else {
-						$cart[] = array( 'prodid' => $prodid,'prodtitle' => $prodtitle,'prodexcerpt' => $prodexcerpt,'prodquantity' => '1' );
+						$cart[] = array( 'prodid' => $prodid,'prodtitle' => $prodtitle,'prodexcerpt' => $prodexcerpt,'prodquantity' => '1','prodmaxed' => $prodmaxed );
 					}
 				}
 			} else {
@@ -618,7 +655,7 @@ class UBC_CART extends GFAddOn
 			}
 			$this->session->set( 'ubc-cart',$cart );
 			$data_for_javascript = 'Added to cart - '.serialize( $this->session );
-			echo wp_kses_post( $this->create_table().'*'.$this->cart_calculate_items( ) );
+			echo wp_kses_post( $this->create_table().'*'.$this->cart_calculate_items( ).'*'.$maxid );
 			die();
 		}
 	}
@@ -709,6 +746,22 @@ class UBC_CART extends GFAddOn
 			}
 		}
 		return $cart_items;
+	}
+
+	// -- Function Name : cart_calculate_maxitems
+	// -- Purpose : Calculates the number of items in the cart (item)
+	public function cart_calculate_maxitems(  ) {
+		$cart_maxitems = array();
+		$cart = $this->session->get( 'ubc-cart' );
+		if ( $cart ) {
+			foreach ( $cart as $cartrow => $itemrow ) {
+				if ( 1 == $itemrow['prodmaxed'] ) {
+					$cart_maxitems[] = $itemrow['prodid'];
+				}
+			}
+			return implode( ',',$cart_maxitems );
+		}
+		return '';
 	}
 
 	// -- Function Name : create_table

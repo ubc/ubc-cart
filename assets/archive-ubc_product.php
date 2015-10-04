@@ -77,14 +77,14 @@ if ($filter_option) $filter = $filter_option;
 					<?php 
 						if ($filter_option){
 							if (in_array($filter_option,$terms_list)){
-								echo '<button href="#" class="cartbtn small" onclick="addtocart(this,'.$post->ID.')"><i class="icon-shopping-cart"></i> Add to Cart</button>';
+								echo '<button id="pid_'.$post->ID.'" href="#" class="cartbtn small" onclick="addtocart(this,'.$post->ID.')"><i class="icon-shopping-cart"></i> Add to Cart</button>';
 							}
 							else{
-								echo '<button href="#" class="cartbtn disabled small" onclick=""><i class="icon-shopping-cart"></i> Add to Cart</button>';
+								echo '<button id="pid_'.$post->ID.'" href="#" class="cartbtn disabled small" onclick=""><i class="icon-shopping-cart"></i> Add to Cart</button>';
 							}
 						}
 						else{
-							echo '<button href="#" class="cartbtn small" onclick="addtocart(this,'.$post->ID.')"><i class="icon-shopping-cart"></i> Add to Cart</button>';
+							echo '<button id="pid_'.$post->ID.'" href="#" class="cartbtn small" onclick="addtocart(this,'.$post->ID.')"><i class="icon-shopping-cart"></i> Add to Cart</button>';
 						}
 					?>
 				</div><!-- .entry-summary -->
