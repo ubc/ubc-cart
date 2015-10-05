@@ -70,6 +70,9 @@ class UBC_CART extends GFAddOn
 		//Setup shortcode for mini cart
 		add_shortcode( 'show-cart', array( &$this, 'show_ubc_cart' ) );
 
+		// Add our custom UBC Product Shortcodes
+		add_action( 'init', array( $this, 'init__add_shortcodes' ) );
+
 		//Setup shortcode for add-to-cart button
 		//add_shortcode('addcart', array(&$this ,'add_to_cart_shortcode' ));
 
@@ -88,6 +91,181 @@ class UBC_CART extends GFAddOn
 
 		//Options & Settings
 		$this->admin_settings  = new GFCartAddOn();
+	}
+
+	// -- Function Name : init__add_shortcodes
+	// -- Params :
+	// -- Purpose : List products and list related products
+	public function init__add_shortcodes() {
+		add_shortcode( 'ubc-product', array( $this, 'add_shortcode__ubc_product' ) );
+		add_shortcode( 'ubc-product-related', array( $this, 'add_shortcode__ubc_product_related' ) );
+	}
+
+	// -- Function Name : init__add_shortcodes
+	// -- Params : Parameters ID/Title/Price - [linked to product page] + Add to cart Button
+	// -- Default : Show settings columns - explicitly set columns [price] Add to Cart button
+	// -- Purpose : Show product with AddtoCart button
+	// -- To be used within CTLT Loop Query shortcode
+	// -- @return (string) markup for this shortcode
+	public function add_shortcode__ubc_product_related( $atts ) {
+		global $post;
+		$atts = shortcode_atts(
+			array(
+				'show_headings' => 'true',
+				'linked' => 'true',
+				'link_target' => '_self',
+				'show_thumbnail' => 'false',
+				'thumbsize' => '',
+				'show_id' => 'true',
+				'show_title' => 'true',
+				'show_excerpt' => 'true',
+				'show_price' => 'true',
+				'show_button' => 'true',
+			),
+			$atts,
+			'ubc-product'
+		);
+		$shortcode_output = '';
+		//**MOD
+		$tags = get_the_tags();
+		if ( $tags ) {
+			$tag_ids = array();
+			foreach ( $tags as $individual_tag ) {
+				$tag_ids[] = $individual_tag->term_id;
+			}
+			$args = array(
+					'post_type' => 'ubc_product',
+					'tag__in' => $tag_ids,
+					'posts_per_page' => 4,
+					'caller_get_posts' => 1,
+			);
+			$related_query = new wp_query( $args );
+			$shortcode_header .= '<thead><tr class="product-heading-tr">';
+			$columns = 0;
+			if ( 'true' === $atts['show_thumbnail'] ) {
+				$shortcode_header .= '<th class="prodimg">&nbsp;</th>';
+				$columns ++;
+			}
+			if ( 'true' === $atts['show_id'] ) {
+				$shortcode_header .= '<th class="prodid">ID</th>';
+				$columns ++;
+			}
+			if ( 'true' === $atts['show_title'] ) {
+				$shortcode_header .= '<th class="prodtitle">Title</th>';
+				$columns ++;
+			}
+			if ( 'true' === $atts['show_price'] ) {
+				$shortcode_header .= '<th class="prodprice">Price</th>';
+				$columns ++;
+			}
+			if ( 'true' === $atts['show_button'] ) {
+				$shortcode_header .= '<th class="prodbutton">&nbsp;</th>';
+				$columns ++;
+			}
+			$shortcode_header .= '</tr></thead>';
+			$shortcode_body = '<tbody>';
+			while ( $related_query->have_posts() ) {
+				$related_query->the_post();
+				$shortcode_body .= '<tr class="product-tr">';
+				if ( 'true' === $atts['show_thumbnail'] ) {
+					$thumb_url = '<img src="'.wp_get_attachment_url( get_post_thumbnail_id( get_the_ID() ) ).'" />';
+					$shortcode_body .= '<td class="product-thumbnail" data-title="ID">'.$thumb_url.'</td>';
+				}
+				if ( 'true' === $atts['show_id'] ) {
+					$shortcode_body .= '<td class="product-id">'.get_the_ID().'</td>';
+				}
+				if ( 'true' === $atts['show_title'] ) {
+					if ( 'true' === $atts['linked'] ) {
+						$shortcode_body .= '<td class="product-title"><a href="'.get_the_permalink( get_the_ID() ).'" target="'.$atts['link_target'].'">'.get_the_title().'</a></td>';
+					} else {
+						$shortcode_body .= '<td class="product-title" data-title="Title">'.get_the_title().'</td>';
+					}
+				}
+				if ( 'true' === $atts['show_excerpt'] ) {
+					$shortcode_description = '<p>'.$post->post_excerpt.'</p>';
+				}
+				if ( 'true' === $atts['show_price'] ) {
+					$shortcode_body .= '<td class="product-price" data-title="Price">$'.get_post_meta( get_the_ID(), 'price', true ).'</td>';
+				}
+				if ( 'true' === $atts['show_button'] ) {
+					$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
+				}
+				$shortcode_body .= '</tr>';
+				$shortcode_body .= '<tr><td colspan="'.$columns.'">'.$shortcode_description.'</td></tr>';
+			}
+			$shortcode_body .= '</tbody>';
+			if ( 'true' === $atts['show_headings'] ) {
+				$shortcode_body = $shortcode_header . $shortcode_body;
+			}
+			$shortcode_output .= '<table class="ubc-product-related-sc">'.$shortcode_body.'</table>';
+		}
+		wp_reset_query();
+		return $shortcode_output;
+	}
+
+
+	// -- Function Name : init__add_shortcodes
+	// -- Params : Parameters ID/Title/Price - [linked to product page] + Add to cart Button
+	// -- Default : Show settings columns - explicitly set columns [price] Add to Cart button
+	// -- Purpose : Show product with AddtoCart button
+	// -- To be used within CTLT Loop Query shortcode
+	// -- @return (string) markup for this shortcode
+	public function add_shortcode__ubc_product( $atts ) {
+		$atts = shortcode_atts(
+			array(
+				'show_headings' => 'true',
+				'linked' => 'true',
+				'link_target' => '_self',
+				'show_thumbnail' => 'true',
+				'thumbsize' => '',
+				'show_id' => 'true',
+				'show_title' => 'true',
+				'show_excerpt' => 'true',
+				'show_price' => 'true',
+				'show_button' => 'true',
+			),
+			$atts,
+			'ubc-product'
+		);
+		$shortcode_output = '';
+		$shortcode_header .= '<thead><tr class="product-heading-tr">';
+		$shortcode_body = '<tbody><tr class="product-tr">';
+		if ( 'true' === $atts['show_thumbnail'] ) {
+			$shortcode_header .= '<th class="prodimg">&nbsp;</th>';
+			$thumb_url = '<img src="'.wp_get_attachment_url( get_post_thumbnail_id( get_the_ID() ) ).'" />';
+			$shortcode_body .= '<td class="product-thumbnail" data-title="ID">'.$thumb_url.'</td>';
+		}
+		if ( 'true' === $atts['show_id'] ) {
+			$shortcode_header .= '<th class="prodid">ID</th>';
+			$shortcode_body .= '<td class="product-id">'.get_the_ID().'</td>';
+		}
+		if ( 'true' === $atts['show_title'] ) {
+			$shortcode_header .= '<th class="prodtitle">Title</th>';
+			if ( 'true' === $atts['linked'] ) {
+				$shortcode_body .= '<td class="product-title"><a href="'.get_the_permalink( get_the_ID() ).'" target="'.$atts['link_target'].'">'.get_the_title().'</a></td>';
+			} else {
+				$shortcode_body .= '<td class="product-title" data-title="Title">'.get_the_title().'</td>';
+			}
+		}
+		if ( 'true' === $atts['show_excerpt'] ) {
+			//$shortcode_header .= '<th class="Description-header">Desc.</th>';
+			$shortcode_description .= '<p>'.get_the_excerpt().'</p>';
+		}
+		if ( 'true' === $atts['show_price'] ) {
+			$shortcode_header .= '<th class="prodprice">Price</th>';
+			$shortcode_body .= '<td class="product-price" data-title="Price">$'.get_post_meta( get_the_ID(), 'price', true ).'</td>';
+		}
+		if ( 'true' === $atts['show_button'] ) {
+			$shortcode_header .= '<th class="prodbutton">&nbsp;</th>';
+			$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
+		}
+		$shortcode_header .= '</tr></thead>';
+		$shortcode_body .= '</tr></tbody>';
+		if ( 'true' === $atts['show_headings'] ) {
+			$shortcode_body .= $shortcode_header;
+		}
+		$shortcode_output .= '<table class="ubc-product-sc">'.$shortcode_body.'</table>'.$shortcode_description;
+		return $shortcode_output;
 	}
 
 	// -- Function Name : show_ubc_cart
@@ -111,7 +289,7 @@ class UBC_CART extends GFAddOn
 			$cartoptions = get_option( 'ubc_cart_options' );
 			$filter_id = $cartoptions['filter'];
 			if ( has_term( $filter_id, 'ubc_product_type' ,$post->ID ) ) {
-				$content = the_post_thumbnail( array( 150, 150 ) ).$content . '<button id="pid_'.$post->ID.'" href="#" class="cartbtn" onclick="addtocart(this,'.$post->ID.')"><i class="icon-shopping-cart"></i> Add to Cart</button><button style="margin-left:5px;" onclick="window.location.href=\''.site_url( '/checkout/' ).'\'" class="cartbtn"><i class="icon-circle-arrow-right"></i> Go to Checkout</button>';
+				$content = the_post_thumbnail( array( 150, 150 ) ).$content . '<button class="cartbtn pid_'.$post->ID.'" href="#" onclick="addtocart(this,'.$post->ID.')"><i class="icon-shopping-cart"></i> Add to Cart</button><button style="margin-left:5px;" onclick="window.location.href=\''.site_url( '/checkout/' ).'\'" class="cartbtn"><i class="icon-circle-arrow-right"></i> Go to Checkout</button>';
 			}
 		}
 		return $content;

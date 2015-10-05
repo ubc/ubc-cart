@@ -27,9 +27,9 @@ function chooseform(element){
 jQuery( document ).ready(function() {
 	if (cart_script_vars.maxitems) {
 		maxidarr = cart_script_vars.maxitems.split(",");
-		for (i = 0; i < maxidarr.length; i++) { 
-			jQuery('#pid_'+maxidarr[i]).addClass('disabled');
-		} 
+		for (i = 0; i < maxidarr.length; i++) {
+			jQuery('.pid_'+maxidarr[i]).addClass('disabled');
+		}
 	}
 	jQuery('#gform_'+cart_script_vars.formid+' #gform_submit_button_'+cart_script_vars.formid).addClass('cartbtn');
 	if (cart_script_vars.cartmenu != ''){
@@ -153,8 +153,8 @@ function cart_delete_item(element, itemnum, onform){
 				cart_script_vars.cartitems = resarr[4];
 				jQuery('li#menu-item-'+cart_script_vars.cartmenu+' a').attr('data-after',cart_script_vars.cartitems);
 				if (resarr[5])
-					jQuery('#pid_'+resarr[5]).removeClass('disabled');
-		 	}
+					jQuery('.pid_'+resarr[5]).removeClass('disabled');
+			 }
 	 });
 	 return false;
 }
@@ -210,7 +210,7 @@ function deletecart(){
 			 dataType: 'html',
 			 success: function(response){
 				jQuery('#cart-details .cartinput_list').parent().html('<p>'+ response +'</p>');
-				cart_script_vars.cartitems = 0; 
+				cart_script_vars.cartitems = 0;
 				jQuery('li#menu-item-'+cart_script_vars.cartmenu+' a').attr('data-after',cart_script_vars.cartitems);
 				jQuery('.cartbtn').removeClass('disabled');
 			 }
@@ -249,19 +249,19 @@ function addtocart(obj,postid){
 					jQuery(obj).find('i').removeClass('icon-shopping-cart');
 					jQuery(obj).find('i').addClass('icon-spinner icon-spin');
 				}
-		 	 },
+			  },
 			 dataType: 'html',
 			 success: function(response){
 				var resarr = response.split("*");
 				jQuery('#cart-details').html('<p>'+ resarr[0] +'</p>');
-				cart_script_vars.cartitems = resarr[1]; 
+				cart_script_vars.cartitems = resarr[1];
 				jQuery('li#menu-item-'+cart_script_vars.cartmenu+' a').attr('data-after',cart_script_vars.cartitems);
 				if (!jQuery(obj).hasClass('disabled')){
 					jQuery(obj).find('i').removeClass('icon-spinner icon-spin');
 					jQuery(obj).find('i').addClass('icon-shopping-cart');
 				}
 				if (resarr[2])
-					jQuery('#pid_'+resarr[2]).addClass('disabled');
+					jQuery('.pid_'+resarr[2]).addClass('disabled');
 		 }
 	 });
 	 return false;
