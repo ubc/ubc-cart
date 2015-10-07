@@ -19,6 +19,8 @@ get_header(); ?>
 <script>
 	var $container = jQuery('#isocontainer').isotope({itemSelector: '.element-item',layoutMode: 'fitRows'});
 	function filterclick(obj){
+		jQuery('#mfilters button').removeClass('active'); 
+		jQuery(obj).addClass('active');
 		var filterValue = jQuery(obj).attr('data-filter');
 		jQuery('#iso-container').isotope({ filter: filterValue });
 	}
@@ -42,12 +44,19 @@ $filter_name = $filter_term->name;
 if ($filter_option) $filter = $filter_option;
 ?>
 		<div id="mfilters">
-			<button onclick="filterclick(this)" class="cartbtn active" data-filter="*">show all</button>
+			<button onclick="filterclick(this)" class="small cartbtn active" data-filter="*">show all</button>
 			<?php
-					if ( $filter_option )
-					echo '<button  style="margin-left:5px;" onclick="filterclick(this)" class="cartbtn" data-filter=".'.$filter.'">'.$filter_name.'</button>';
+				$terms = get_terms( 'ubc_product_type' );
+				foreach ( $terms as $term ) {
+					if ( $term->slug == $filter_option ) {
+						echo '<button  style="margin-left:5px;" onclick="filterclick(this)" class="cartbtn small filter" data-filter=".'.$term->slug.'">'.$term->name.'<span class="filtmark">*<span></button>';
+					} else {
+						echo '<button  style="margin-left:5px;" onclick="filterclick(this)" class="cartbtn small filter" data-filter=".'.$term->slug.'">'.$term->name.'</button>';
+					}
+				}
 			?>
-<button  style="margin-left:5px;" onclick="window.location.href='<?php echo site_url('/checkout/'); ?>'" class="cartbtn"><i class="icon-circle-arrow-right"></i> Go to Checkout</button>
+			<button  style="margin-left:5px;" onclick="window.location.href='<?php echo site_url('/checkout/'); ?>'" class="small cartbtn"><i class="icon-circle-arrow-right"></i> Go to Checkout</button>
+
 		</div>
 <?php if ( have_posts() ) : ?>
 
