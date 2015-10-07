@@ -10,7 +10,7 @@ if ( class_exists( 'GFForms' ) ) {
 	// --			 2. Taxterm filter.
 	// --			 3. Columns choice.
 	// --			 4. Cart Settings.
-	// --			 5. Debug functions.
+	// --			 5. Shortcode Documentation.
 	// -- Has to be aware of whether UBC ePayments plugin is active or not
 	// -- Keeps  the default options and labels information.
 	// -- Created On : March 21st 2015
@@ -414,25 +414,20 @@ if ( ! empty( $colstr ) ) {
 				<h3>Do you want to show the Cart in the primary menu?.
 				<input id="cartmenu_chk" type="checkbox" name="showcartmenu" value="0"<?php checked( ! empty( $cartoptions['showcartmenu'] ) ); echo esc_html( $disabled ) ?> /></h3></span>
 			</div>
-
-			<br><h3>5. Debugging and Testing.</h3>
-			<div class="panel-instructions">
-				<ol>
-					<li>Try clicking on "Add to Cart" button - this will add a "dummy" item to the cart and you should see a session id at the bottom of cart.</li>
-					<li>Check if cart columns reflect the choices you made above.</li>
-					<li>Click on "Go to Checkout" and make sure that the "Dummy" items show on the form and the display columns are correct.</li>
-					<li>Click on "Delete Cart" to empty cart. (flush session vars)</li>
-				</ol>
+			<br><h3>5. Shortcode descriptions.</h3>
+			<div class="gcolumn_wrapper"><ol>
+				<li><p>The <b>[show-cart]</b> shortcode used with the section widget can display the cart on any post/page - takes no parameters and uses options set on this page for data columns. It is also used on the cart page linked to the checkout form.</p></li>
+				<li><p>The <b>[ubc-product]</b> shortcode is a template shortcode that can be used within the loop query (including CTLT's loop shortcode) to list products as well as the associated add-to-cart button - parameters are listed below along with the default settings. Example of usage.</p>
+				<p>	[loop query="post_type=ubc_product&meta_key=price&orderby=meta_value&order=asc"]</br>
+					&nbsp;&nbsp;&nbsp;[ubc-product show_id=false show_thumbnail=true]</br>
+					[loop]</br>
+				</p></li>
+				<li><p>The <b>[ubc-product-related]</b> shortcode is a shortcode that can be used within a post to list related products by tags - the ubc_product custom post type shares the default tag taxonomy that wordpress uses for standard posts. Parameters are the same as used for ubc-product. Example of usage.</p>
+				<p>[ubc-product-related show_id=false show_thumbnail=true]</p></li>
+			</ol>
+				<ol style="list-style:none;"><li><b>Parameters:</b> (for the two shortcodes above and defaults) show_headings(true) | linked(true) | link_target('_self') | show_thumbnail(true) | thumbsize('') |show_id(true) | show_title(true) | show_excerpt(true) | show_price(true) | show_button(true)</li></ol>
 			</div>
-			<div class="gcolumn_wrapper">
-				<a href="#" class="button-primary" onclick="addtocart()">Add to Cart</a>
-				<a href="#" class="button-primary" onclick="showcart()">Show Cart</a>
-				<a href="#" class="button-primary" onclick="deletecart()">Delete Cart</a>
-				<a href="#" class="button-primary" onclick="reset_settings()">Reset Settings to Default</a>
-				<a href="<?php echo esc_url( site_url( '/checkout/' ) ); ?>" class="button-primary" style="margin-left:20px;">Go to Checkout</a>
-				<div id="cart-details"></div>
-			</div>
-		<?php
+<?php
 		}
 	}
 }
