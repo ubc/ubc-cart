@@ -4,7 +4,7 @@
 * Gravity Forms UBC Cart Custom Form Field
 * Plugin URI: http://isit.adm.arts.ubc.ca
 * Description: Gravity Forms Shopping Cart field for use in Gravity Forms
-* Version: .8
+* Version: 1.0
 * Author: Shaffiq Rahemtulla
 * Author URI: http://isit.adm.arts.ubc.ca
 * License: GPLv2

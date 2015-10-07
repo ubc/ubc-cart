@@ -50,6 +50,12 @@ The advantage of using transients (which are just WordPress options) is that the
 
 The wrapper class for UBC Cart is basically just a setter and getter class for the session manager.
 
+== Version 1.0 ==
+
+Release date: October 1, 2015
+
+* New shortcodes and menu button added.
+
 == Version 0.9 ==
 
 Release date: August 7, 2015

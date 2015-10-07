@@ -551,7 +551,7 @@ td.product-id,td.product-title{font-size:18px;font-weight:bold;}
 td.product-title a{text-decoration:none;}
 th{text-align:left}
 td{padding:5px;vertical-align:top;}
-.ubc-product-sc{width:100%}
+.ubc-product-sc,.ubc-product-related-sc{width:100%}
 
 /*just COLLAB*/
 /*#ubc7-unit-menu .nav-collapse li.cart_menu_item a{background-color:green;}*/
