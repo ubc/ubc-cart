@@ -36,6 +36,16 @@ jQuery( document ).ready(function() {
 		jQuery('li#menu-item-'+cart_script_vars.cartmenu+' a').attr('data-after',cart_script_vars.cartitems);
 		jQuery('<style>li#menu-item-'+cart_script_vars.cartmenu+' a:after{content: attr(data-after);color:red;margin-left:3px;}</style>').appendTo('head');
 	}
+
+	//Run this only on Archive page - possible - create new js and include only on archive page
+	var $container = jQuery('#isocontainer').isotope({itemSelector: '.element-item',layoutMode: 'fitRows'});
+	function filterclick(obj){
+		jQuery('#mfilters button').removeClass('active');
+		jQuery(obj).addClass('active');
+		var filterValue = jQuery(obj).attr('data-filter');
+		jQuery('#iso-container').isotope({ filter: filterValue });
+	}
+
 	// -- sets the tax term from drop-down to be used as filter - option
 	jQuery('#cartfilter').on('change', function($) {
 		  //alert( this.value ); // or $(this).val()

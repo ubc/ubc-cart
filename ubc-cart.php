@@ -81,6 +81,7 @@ class UBC_CART extends GFAddOn
 
 		//Add plugin js
 		add_action( 'wp_enqueue_scripts', array( &$this, 'cart_script' ) );
+		add_action( 'wp_enqueue_scripts', array( &$this, 'archive_page_script' ) );
 		add_action( 'admin_enqueue_scripts', array( &$this, 'admin_cart_script' ) );
 
 		//Add Ajax Actions
@@ -380,6 +381,16 @@ class UBC_CART extends GFAddOn
 
 		//Reset Cart Settings
 		add_action( 'wp_ajax_cart_reset_settings_action', array( &$this, 'cart_reset_settings_action_ajax_handler' ) );
+	}
+
+	// -- Function Name : archive_page_script
+	// -- Params : None
+	// -- Purpose : Add JS (Frontend only if on product archive page).
+	function archive_page_script( ) {
+		if ( is_archive() && get_post_type( ) == 'ubc_product' ) {
+			$url = plugins_url( '/assets/js/isotope.pkgd.min.js' , __FILE__ );
+			wp_enqueue_script( 'archive_page_script', $url , array( 'jquery' ), '1.0' );
+		}
 	}
 
 	// -- Function Name : cart_script
@@ -1141,12 +1152,12 @@ class UBC_CART extends GFAddOn
 	// -- Purpose : add plugin template file for archive page
 	function ubc_product_template( $template ) {
 		if ( is_post_type_archive( 'ubc_product' ) ) {
-			$theme_files = array( '/assets/archive-ubc_product.php', 'archive-ubc_product.php' );
+			$theme_files = array( '/assets/archive-ubc-product.php', 'archive-ubc_product.php' );
 			$exists_in_theme = locate_template( $theme_files, false );
 			if ( '' != $exists_in_theme ) {
 				return $exists_in_theme;
 			} else {
-				return plugin_dir_path( __FILE__ ) . '/assets/archive-ubc_product.php';
+				return plugin_dir_path( __FILE__ ) . '/assets/archive-ubc-product.php';
 			}
 		}
 		return $template;
