@@ -32,7 +32,7 @@ jQuery( document ).ready(function() {
 		}
 	}
 	jQuery('#gform_'+cart_script_vars.formid+' #gform_submit_button_'+cart_script_vars.formid).addClass('cartbtn');
-	if (cart_script_vars.cartmenu != ''){
+	if ('' !== cart_script_vars.cartmenu){
 		jQuery('li#menu-item-'+cart_script_vars.cartmenu+' a').attr('data-after',cart_script_vars.cartitems);
 		jQuery('<style>li#menu-item-'+cart_script_vars.cartmenu+' a:after{content: attr(data-after);color:red;margin-left:3px;}</style>').appendTo('head');
 	}
@@ -94,14 +94,14 @@ function cartSelectColumns(reset) {
 		columnstr = 'reset';
 	}
 	else{
-			columns = new Array();
+			columns = [];
 			columnstr = '';
 			jQuery("#sortable_selected li").each(function () {
 				columns.push(this.id);
 			});
 			columnstr = columns.join(',');
 
-			columnsoff = new Array();
+			columnsoff = [];
 			columnoffstr = '';
 			jQuery("#sortable_available li").each(function () {
 				columnsoff.push(this.id);
@@ -237,7 +237,7 @@ function reset_settings(){
 			 error: function(jqXHR, textStatus) {alert(textStatus);},
 			 beforeSend: function(){},
 			 dataType: 'html',
-			 success: function(response){alert('settings reset')}
+			 success: function(response){alert('settings reset');}
 	 });
 	 return false;
 }
@@ -304,7 +304,7 @@ function gformDeleteListItem(element, max){
 function gformAdjustClasses(table){
 	var rows = table.children();
 	for(var i=0; i<rows.length; i++){
-		var odd_even_class = (i+1) % 2 == 0 ? "gfield_list_row_even" : "gfield_list_row_odd";
+		var odd_even_class = (i+1) % 2 === 0 ? "gfield_list_row_even" : "gfield_list_row_odd";
 		jQuery(rows[i]).removeClass("gfield_list_row_odd").removeClass("gfield_list_row_even").addClass(odd_even_class);
 	}
 }
