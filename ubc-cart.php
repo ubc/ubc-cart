@@ -189,7 +189,20 @@ class UBC_CART extends GFAddOn
 					$shortcode_body .= '<td class="product-price" data-title="Price">$'.get_post_meta( get_the_ID(), 'price', true ).'</td>';
 				}
 				if ( 'true' === $atts['show_button'] ) {
-					$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
+					$cartoptions = get_option( 'ubc_cart_options' );
+					$filter_id = $cartoptions['filter'];
+					$filter_term = get_term( $filter_id, 'ubc_product_type' );
+					$filter_option = $filter_term->slug;
+					$terms_list = wp_get_post_terms(get_the_ID(), 'ubc_product_type', array("fields" => "slugs") );
+					if ($filter_option){
+						if (in_array($filter_option,$terms_list)){
+							$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
+						} else {
+							$shortcode_body .= '<td class="product-button" text-align="right"><button class="disabled cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
+						}
+					} else {
+						$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
+					}
 				}
 				$shortcode_body .= '</tr>';
 				$shortcode_body .= '<tr><td colspan="'.$columns.'">'.$shortcode_description.'</td></tr>';
@@ -258,7 +271,20 @@ class UBC_CART extends GFAddOn
 		}
 		if ( 'true' === $atts['show_button'] ) {
 			$shortcode_header .= '<th class="prodbutton">&nbsp;</th>';
-			$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
+			$cartoptions = get_option( 'ubc_cart_options' );
+			$filter_id = $cartoptions['filter'];
+			$filter_term = get_term( $filter_id, 'ubc_product_type' );
+			$filter_option = $filter_term->slug;
+			$terms_list = wp_get_post_terms(get_the_ID(), 'ubc_product_type', array("fields" => "slugs") );
+			if ($filter_option){
+				if (in_array($filter_option,$terms_list)){
+					$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
+				} else {
+					$shortcode_body .= '<td class="product-button" text-align="right"><button class="disabled cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
+				}
+			} else {
+				$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
+			}
 		}
 		$shortcode_header .= '</tr></thead>';
 		$shortcode_body .= '</tr></tbody>';
@@ -1152,7 +1178,7 @@ class UBC_CART extends GFAddOn
 	// -- Purpose : add plugin template file for archive page
 	function ubc_product_template( $template ) {
 		if ( is_post_type_archive( 'ubc_product' ) ) {
-			$theme_files = array( '/assets/archive-ubc-product.php', 'archive-ubc_product.php' );
+			$theme_files = array( '/assets/archive-ubc-product.php', 'archive-ubc-product.php' );
 			$exists_in_theme = locate_template( $theme_files, false );
 			if ( '' != $exists_in_theme ) {
 				return $exists_in_theme;

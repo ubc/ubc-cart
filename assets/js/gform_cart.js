@@ -38,7 +38,7 @@ jQuery( document ).ready(function() {
 	}
 
 	//Run this only on Archive page - possible - create new js and include only on archive page
-	var $container = jQuery('#isocontainer').isotope({itemSelector: '.element-item',layoutMode: 'fitRows'});
+	//var $container = jQuery('#isocontainer').isotope({itemSelector: '.element-item',layoutMode: 'fitRows'});
 	function filterclick(obj){
 		jQuery('#mfilters button').removeClass('active');
 		jQuery(obj).addClass('active');
