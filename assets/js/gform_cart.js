@@ -4,6 +4,13 @@
 
 var columns,columnsoff;
 
+function filterclick(obj){
+	jQuery('#mfilters button').removeClass('active');
+	jQuery(obj).addClass('active');
+	var filterValue = jQuery(obj).attr('data-filter');
+	jQuery('#iso-container').isotope({ filter: filterValue });
+}
+
 // -- chooseform - sets option for formid to be used on checkout page - option
 function chooseform(element){
 	formid = jQuery(element).val();
@@ -39,12 +46,6 @@ jQuery( document ).ready(function() {
 
 	//Run this only on Archive page - possible - create new js and include only on archive page
 	//var $container = jQuery('#isocontainer').isotope({itemSelector: '.element-item',layoutMode: 'fitRows'});
-	function filterclick(obj){
-		jQuery('#mfilters button').removeClass('active');
-		jQuery(obj).addClass('active');
-		var filterValue = jQuery(obj).attr('data-filter');
-		jQuery('#iso-container').isotope({ filter: filterValue });
-	}
 
 	// -- sets the tax term from drop-down to be used as filter - option
 	jQuery('#cartfilter').on('change', function($) {
