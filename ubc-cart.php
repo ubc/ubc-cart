@@ -751,7 +751,20 @@ class UBC_CART extends GFAddOn
 		if ( wp_verify_nonce( $_POST['cart_columns_action_nonce'], 'cart_columns_action' ) ) {
 			$columnstring = $_POST['js_data_for_php'];
 			if ( 'reset' == $columnstring ) {
+				$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
+				//keep old cartpageid and menuitem in temp vars.
+				$cartpageid = $cartoptions['cartpid'];
+				$cartpagemenuid = $cartoptions['showcartmenu'];
+				//reset to defaults
 				$cartoptions = $this->admin_settings->default_options;
+				//put back cartpage and menuitem
+				$cartoptions['cartpid'] = $cartpageid;
+				$cartoptions['showcartmenu'] = $cartpagemenuid;
+				if ( $this->admin_settings->is_cartoption_valid( $cartoptions ) ) {
+					update_option( 'ubc_cart_options', $cartoptions );
+				} 
+				//At this point all OK except the default cart name needs to be set
+				$this->set_cart_page( );
 			} else {
 				$columnarr = explode( '*',$columnstring );
 				$colstr = $columnarr[0];
@@ -762,9 +775,9 @@ class UBC_CART extends GFAddOn
 				$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
 				$cartoptions['cartColumns'] = $colstr;
 				$cartoptions['cartColumnsoff'] = $colstroff;
-			}
-			if ( $this->admin_settings->is_cartoption_valid( $cartoptions ) ) {
-				update_option( 'ubc_cart_options', $cartoptions );
+				if ( $this->admin_settings->is_cartoption_valid( $cartoptions ) ) {
+					update_option( 'ubc_cart_options', $cartoptions );
+				}
 			}
 			$data_for_javascript = 'Changed Columns - '.$colstr.'*'.$colstroff;
 			echo wp_kses_post( $this->create_table() );
