@@ -193,12 +193,12 @@ class UBC_CART extends GFAddOn
 					$filter_id = $cartoptions['filter'];
 					$filter_term = get_term( $filter_id, 'ubc_product_type' );
 					$filter_option = $filter_term->slug;
-					$terms_list = wp_get_post_terms(get_the_ID(), 'ubc_product_type', array("fields" => "slugs") );
-					if ($filter_option){
-						if (in_array($filter_option,$terms_list)){
+					$terms_list = wp_get_post_terms( get_the_ID(), 'ubc_product_type', array( 'fields' => 'slugs' ) );
+					if ( $filter_option ) {
+						if ( in_array( $filter_option,$terms_list ) ) {
 							$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
 						} else {
-							$shortcode_body .= '<td class="product-button" text-align="right"><button class="disabled cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
+							$shortcode_body .= '<td class="product-button" text-align="right"><button class="disabled by-filter cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
 						}
 					} else {
 						$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
@@ -275,12 +275,12 @@ class UBC_CART extends GFAddOn
 			$filter_id = $cartoptions['filter'];
 			$filter_term = get_term( $filter_id, 'ubc_product_type' );
 			$filter_option = $filter_term->slug;
-			$terms_list = wp_get_post_terms(get_the_ID(), 'ubc_product_type', array("fields" => "slugs") );
-			if ($filter_option){
-				if (in_array($filter_option,$terms_list)){
+			$terms_list = wp_get_post_terms( get_the_ID(), 'ubc_product_type', array( 'fields' => 'slugs' ) );
+			if ( $filter_option ) {
+				if ( in_array( $filter_option,$terms_list ) ) {
 					$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
 				} else {
-					$shortcode_body .= '<td class="product-button" text-align="right"><button class="disabled cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
+					$shortcode_body .= '<td class="product-button" text-align="right"><button class="disabled by-filter cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
 				}
 			} else {
 				$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
@@ -762,7 +762,7 @@ class UBC_CART extends GFAddOn
 				$cartoptions['showcartmenu'] = $cartpagemenuid;
 				if ( $this->admin_settings->is_cartoption_valid( $cartoptions ) ) {
 					update_option( 'ubc_cart_options', $cartoptions );
-				} 
+				}
 				//At this point all OK except the default cart name needs to be set
 				$this->set_cart_page( );
 			} else {

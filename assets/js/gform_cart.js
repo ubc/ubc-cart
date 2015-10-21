@@ -223,7 +223,7 @@ function deletecart(){
 				jQuery('#cart-details .cartinput_list').parent().html('<p>'+ response +'</p>');
 				cart_script_vars.cartitems = 0;
 				jQuery('li#menu-item-'+cart_script_vars.cartmenu+' a').attr('data-after',cart_script_vars.cartitems);
-				jQuery('.cartbtn').removeClass('disabled');
+				jQuery('.cartbtn:not(.by-filter)').removeClass('disabled');
 			 }
 	 });
 	 return false;

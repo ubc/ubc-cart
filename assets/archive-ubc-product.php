@@ -69,7 +69,7 @@ get_header();
 						if ( in_array( $filter_option,$terms_list ) ) {
 							echo '<button class="cartbtn small pid_'.absint( $post->ID ).'" href="#"  onclick="addtocart(this,'.absint( $post->ID ).')"><i class="icon-shopping-cart"></i> Add to Cart</button>';
 						} else {
-							echo '<button class="cartbtn disabled small pid_'.absint( $post->ID ).'" href="#"  onclick=""><i class="icon-shopping-cart"></i> Add to Cart</button>';
+							echo '<button class="cartbtn disabled by-filter small pid_'.absint( $post->ID ).'" href="#"  onclick=""><i class="icon-shopping-cart"></i> Add to Cart</button>';
 						}
 					} else {
 						echo '<button class="cartbtn small pid_'.absint( $post->ID ).'" href="#"  onclick="addtocart(this,'.absint( $post->ID ).')"><i class="icon-shopping-cart"></i> Add to Cart</button>';
