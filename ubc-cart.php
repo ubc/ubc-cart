@@ -122,12 +122,20 @@ class UBC_CART extends GFAddOn
 				'show_excerpt' => 'true',
 				'show_price' => 'true',
 				'show_button' => 'true',
+				'orderby' => '',
+				'order' => 'DESC',
 			),
 			$atts,
 			'ubc-product'
 		);
 		$shortcode_output = '';
 		//**MOD
+		if ( isset( $atts['orderby'] ) ) {
+			$orderby = $atts['orderby'];
+		}
+		if ( isset( $atts['order'] ) ) {
+			$order = $atts['order'];
+		}
 		$tags = get_the_tags();
 		if ( $tags ) {
 			$tag_ids = array();
@@ -138,6 +146,8 @@ class UBC_CART extends GFAddOn
 					'post_type' => 'ubc_product',
 					'tag__in' => $tag_ids,
 					'posts_per_page' => 4,
+					'orderby' => $orderby,
+					'order' => $order,
 					'caller_get_posts' => 1,
 			);
 			$related_query = new wp_query( $args );
