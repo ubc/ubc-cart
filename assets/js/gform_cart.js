@@ -264,7 +264,7 @@ function addtocart(obj,postid){
 			 dataType: 'html',
 			 success: function(response){
 				var resarr = response.split("*");
-				jQuery('#cart-details').html('<p>'+ resarr[0] +'</p>');
+				jQuery('#cart-details .cartinput_container').parent().html('<p>'+ resarr[0] +'</p>');
 				cart_script_vars.cartitems = resarr[1];
 				jQuery('li#menu-item-'+cart_script_vars.cartmenu+' a').attr('data-after',cart_script_vars.cartitems);
 				if (!jQuery(obj).hasClass('disabled')){
