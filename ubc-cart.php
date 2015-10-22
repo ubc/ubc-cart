@@ -1183,7 +1183,7 @@ class UBC_CART extends GFAddOn
 		// register js for archive page
 		wp_register_script( 'ubc-product-isotope', UBCCART_PLUGIN_URI . '/assets/isotope.pkgd.min.js' );
 		//Load CSS for archive page
-		wp_register_style( 'ubc-product-styles', UBCCART_PLUGIN_URI . '/assets/css/demos.css' );
+		wp_register_style( 'ubc-product-styles', UBCCART_PLUGIN_URI . '/assets/css/cart.css' );
 		wp_register_style( 'ubc-product-styles', UBCCART_PLUGIN_URI . '/assets/css/layout.css' );
 		wp_enqueue_style( 'ubc-product-styles' );
 	}
