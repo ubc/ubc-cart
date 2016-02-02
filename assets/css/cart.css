@@ -468,6 +468,13 @@ text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
 .color-shape.blue { background: blue; }
 .color-shape.yellow { background: yellow; }
  
+#prodxdatetimediv select,#proddatetimediv select{font-size:12px;height:21px;line-height:14px;padding:0;vertical-align:top;}
+#proddatetimediv input {border-style:solid;border-width:1px;}
+#prodhh, #prodjj, #prodmn, #prodxhh, #prodxjj, #prodxmn {width:2em;}
+#prodaa, #prodhh, #prodjj, #prodmn, #prodxaa, #prodxhh, #prodxjj, #prodxmn{font-size:12px;padding:1px;}
+.proddatetime::before {font-family:"dashicons";content: "\f145";top:-1px;color:#82878c;-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:antialiased;display:inline-block;font:400 20px/1 dashicons;left:-1px;padding:0 2px 0 0;position:relative;text-decoration:none !important;top:0;vertical-align:top;}
+
+.proddatetime{margin-top:10px;margin-bottom:3px;}
 .color-shape.wide, .color-shape.big { width: 150px; }
 .color-shape.tall, .color-shape.big { height: 150px; }
 

@@ -119,6 +119,7 @@ class UBC_CART extends GFAddOn
 				'thumbsize' => '',
 				'show_id' => 'true',
 				'show_title' => 'true',
+				'show_date' => 'true',
 				'show_excerpt' => 'true',
 				'show_price' => 'true',
 				'show_button' => 'true',
@@ -185,11 +186,20 @@ class UBC_CART extends GFAddOn
 				if ( 'true' === $atts['show_id'] ) {
 					$shortcode_body .= '<td class="product-id">'.get_the_ID().'</td>';
 				}
+				if ( ( '' !== $atts['show_date'] ) && ( 'false' !== $atts['show_date'] ) ) {
+					$saveddate = get_post_meta( get_the_ID(), 'proddatetime', true );
+					if ( ( 0 == $saveddate ) || ( empty( $saveddate ) ) ) {
+						$proddate = get_the_date( $atts['show_date'] , get_the_ID() );
+					} else {
+						$proddate = date( $atts['show_date'] , get_post_meta( get_the_ID(), 'proddatetime', true ) );
+					}
+					$proddate = '<span class="product-date-start" data-title="Date"> '.$proddate.' </span>';
+				}
 				if ( 'true' === $atts['show_title'] ) {
 					if ( 'true' === $atts['linked'] ) {
-						$shortcode_body .= '<td class="product-title"><a href="'.get_the_permalink( get_the_ID() ).'" target="'.$atts['link_target'].'">'.get_the_title().'</a></td>';
+						$shortcode_body .= '<td class="product-title"><a href="'.get_the_permalink( get_the_ID() ).'" target="'.$atts['link_target'].'">'.$proddate.get_the_title().'</a></td>';
 					} else {
-						$shortcode_body .= '<td class="product-title" data-title="Title">'.get_the_title().'</td>';
+						$shortcode_body .= '<td class="product-title" data-title="Title">'.$proddate.get_the_title().'</td>';
 					}
 				}
 				if ( 'true' === $atts['show_excerpt'] ) {
@@ -243,6 +253,7 @@ class UBC_CART extends GFAddOn
 				'show_thumbnail' => 'true',
 				'thumbsize' => '',
 				'show_id' => 'true',
+				'show_date' => 'true',
 				'show_title' => 'true',
 				'show_excerpt' => 'true',
 				'show_price' => 'true',
@@ -263,12 +274,21 @@ class UBC_CART extends GFAddOn
 			$shortcode_header .= '<th class="prodid">ID</th>';
 			$shortcode_body .= '<td class="product-id">'.get_the_ID().'</td>';
 		}
+		if ( ( '' !== $atts['show_date'] ) && ( 'false' !== $atts['show_date'] ) ) {
+			$saveddate = get_post_meta( get_the_ID(), 'proddatetime', true );
+			if ( ( 0 == $saveddate ) || ( empty( $saveddate ) ) ) {
+				$proddate = get_the_date( $atts['show_date'] , get_the_ID() );
+			} else {
+				$proddate = date( $atts['show_date'] , get_post_meta( get_the_ID() , 'proddatetime', true ) );
+			}
+			$proddate = '<span class="product-date-start" data-title="Date"> '.$proddate.' </span>';
+		}
 		if ( 'true' === $atts['show_title'] ) {
 			$shortcode_header .= '<th class="prodtitle">Title</th>';
 			if ( 'true' === $atts['linked'] ) {
-				$shortcode_body .= '<td class="product-title"><a href="'.get_the_permalink( get_the_ID() ).'" target="'.$atts['link_target'].'">'.get_the_title().'</a></td>';
+				$shortcode_body .= '<td class="product-title"><a href="'.get_the_permalink( get_the_ID() ).'" target="'.$atts['link_target'].'">'.$proddate.get_the_title().'</a></td>';
 			} else {
-				$shortcode_body .= '<td class="product-title" data-title="Title">'.get_the_title().'</td>';
+				$shortcode_body .= '<td class="product-title" data-title="Title">'.$proddate.get_the_title().'</td>';
 			}
 		}
 		if ( 'true' === $atts['show_excerpt'] ) {
@@ -1074,7 +1094,7 @@ class UBC_CART extends GFAddOn
 		if ( class_exists( 'UBC_CBM' ) ) {
 			$tagline = "<p style='font-size:10px;margin-top:-5px;'>Total = ".$this->cart_calculate_total( true ).' <a class="reset" style="margin-right:'.$reset_margin.'px;" onclick="deletecart()" >reset cart</a></p>';
 		} else {
-			$tagline = "<p style='font-size:10px;margin-top:-5px;'>Items = ".$this->cart_calculate_items( ).' <a class="reset" style="margin-right:'.$reset_margin.'px;" onclick="deletecart()" >reset cart</a></p>';
+			$tagline = "<p style='font-size:10px;margin-top:-5px;'>Items = ".$this->cart_calculate_items( ).' <a class="reset" style="margin-right:'.$reset_margin.'px;" onclick="deletecart()" >reset</a></p>';
 		}
 		$cart_display .= '</tbody></table>'.$tagline.'</div>';
 		$cart_display .= '<button class="cartbtn" onclick="window.location.href=\''.site_url( '/checkout/' ).'\'" class="checkout">Checkout <i class="icon-chevron-right"></i><i class="icon-chevron-right"></i></button>';
@@ -1145,6 +1165,15 @@ class UBC_CART extends GFAddOn
 			'featured-thumbnail' => __( 'Image' ),
 			'date' => __( 'Date' ),
 		) );
+		//*create the start date column here*
+		$ubcproducts->columns['startdate'] = __( 'Start Date' );
+		//populate the startdate column
+		$ubcproducts->populate_column( 'startdate', function($column, $post) {
+			$post_meta_data = get_post_custom( $post->ID );
+			if ( ! empty( $post_meta_data['proddatetime'][0] ) ) {
+				echo esc_html( date( 'Y/m/d @ H:i',$post_meta_data['proddatetime'][0] ) );
+			}
+		});
 		//*create the shipping column here*
 		$ubcproducts->columns['shipping'] = __( 'Shipping' );
 		//populate the shipping column
@@ -1169,6 +1198,7 @@ class UBC_CART extends GFAddOn
 		//make price and shipping columns sortable
 		$ubcproducts->sortable(array(
 								'price' => array( 'price', true ),
+								'startdate' => array( 'proddatetime', true ),
 								'shipping' => array( 'shipping', true ),
 								'shippingint' => array( 'shippingint', true ),
 		));
@@ -1418,7 +1448,7 @@ class UBC_CART extends GFAddOn
 			}
 			$columns = array();
 			if ( ! GFCommon::is_form_editor() ) {
-				$edit_cart_link = "<a href='".get_permalink( $cartpid )."' style='float:right;margin:0.625em 10% 0.5em;line-height:1.3;font-weight:700;'>Edit Cart</a>";
+				$edit_cart_link = "<a href='".get_permalink( $cartpid )."' style='float:right;margin:0.625em 10% 0.5em;line-height:1.3;font-weight:700;'>edit</a>";
 			} else { $edit_cart_link = ''; }
 			foreach ( $colarr as $key => $coltxt ) {
 				$columns[ $key ]['text'] = $coltxt;//$this->admin_settings->field_labels[$order_key];
