@@ -403,14 +403,14 @@ class UBC_CART extends GFAddOn
 		// Adds title to GF custom field
 		add_filter( 'gform_field_type_title' , array( &$this, 'ubc_cart_title' ), 1 );
 
-		// Save to DB as serialized array
-		add_filter( 'gform_save_field_value', array( &$this, 'ubc_cart_get_value' ), 10, 4 );
+		//Adds proper headings to cart values
+		add_filter( 'gform_pre_submission_filter', array( &$this, 'ubc_cart_choices' ) );
 
-		//Read from cart as serialized array and create entry
-		//add_filter("gform_entry_field_value", array(&$this, 'ubc_cart_field_display'), 10, 4);
+		//Add links to email
+		add_filter( 'gform_merge_tag_filter', array( &$this, 'ubc_cart_add_email_links' ), 10, 5 );
 
-		//Fix labels in notification
-		add_filter( 'gform_pre_submission', array( &$this, 'ubc_cart_field_email' ), 10, 3 );
+		//Add links in entry
+		add_filter( 'gform_entry_field_value', array( &$this, 'ubc_cart_add_entry_links' ), 10, 4 );
 
 		// Adds the input area to the external side - used for the editor and fe display.
 		add_action( 'gform_field_input' , array( &$this, 'ubc_cart_field_input' ), 9, 5 );
@@ -433,10 +433,60 @@ class UBC_CART extends GFAddOn
 		// Add a custom class to the field li
 		add_action( 'gform_field_css_class', array( &$this, 'custom_class' ), 10, 3 );
 
+		//Add query arg to save url
+		add_filter( 'gform_save_and_continue_resume_url', array( &$this, 'ubc_cart_resume_url' ), 10, 4 );
+
 		// Merge tag for subtotal and shipping
 		add_filter( 'gform_pre_render', array( $this, 'maybe_replace_subtotal_merge_tag' ) );
 		add_filter( 'gform_pre_validation', array( $this, 'maybe_replace_subtotal_merge_tag_submission' ) );
 		add_filter( 'gform_admin_pre_render', array( $this, 'add_merge_tags' ) );
+	}
+
+	function ubc_cart_choices( $form ) {
+		foreach ( $form['fields'] as &$field ) {
+			if ( $field->type == 'cart' ) {
+				// get ubc cart options for columns and put into array
+				$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
+				$colstr = $cartoptions['cartColumns'];
+				if ( ! empty( $colstr ) ) {
+					$colarr = explode( ',',$colstr );
+				}
+				// enumerate array and fill field->choices
+				foreach ( $colarr as $heading ) {
+					$order_key = array_search( $heading,$this->admin_settings->field_order );
+					$choice = $this->admin_settings->field_labels[ $order_key ];
+							$choices[] = array( 'text' => $choice, 'value' => $choice );
+				}
+				$field->choices = $choices;
+			}
+		}
+		return $form;
+	}
+
+
+	function ubc_cart_resume_url( $resume_url, $form, $token, $email ) {
+		$form_contains_cart = false;
+		foreach ( $form['fields'] as $field ) {
+			if ( $field->type == 'cart' ) {
+				$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
+				$choices = explode( ',',$cartoptions['cartColumns'] );
+				$max = count( $choices );
+				$id_index = array_search( 'prodid',$choices );
+				$q_index = array_search( 'prodquantity',$choices );
+				$form_contains_cart = true;
+				break;
+			}
+		}
+		if ( $form_contains_cart ) {
+			$queryarg = $max.'9'.$id_index.'9'.$q_index;
+			//Obfuscate here - no need for security
+			$key = 123456789; //can we keep key somewhere??
+			$queryarg = ($queryarg ^ $key);
+			$queryarg = strrev( base_convert( $queryarg, 10, 36 ) );
+			return $resume_url.'&gf_cart='.$queryarg;
+		} else {
+			return $resume_url;
+		}
 	}
 
 	// -- Function Name : add_ajax_actions
@@ -1356,6 +1406,16 @@ class UBC_CART extends GFAddOn
 		return $value;
 	}
 
+	// -- Function Name : ubc_cart_get_value
+	// -- Params : $value, $lead, $field, $form
+	// -- Purpose : Calls get_cart_data($field) to get the data values from cart
+	function ubc_cart_save_value( $value, $lead, $field, $form ) {
+		if ( 'cart' == $field['type'] ) {
+			$value = $this->get_cart_data( $field );
+		}
+		return $value;
+	}
+
 
 	// -- Function Name : ubc_cart_gform_editor_js
 	// -- Params :
@@ -1409,9 +1469,10 @@ class UBC_CART extends GFAddOn
 		$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
 		$colstr = $cartoptions['cartColumns'];
 		if ( ! empty( $colstr ) ) {
-			$colarr = explode( ',',$colstr );
+			$colarr = $this->admin_settings->field_labels;//explode( ',',$colstr );
 			foreach ( $colarr as $key => $coltxt ) {
-				$defaultStr .= 'new Choice( \''.$this->admin_settings->field_labels[ array_search( $coltxt, $this->admin_settings->field_order ) ].'\'),';
+				//$defaultStr .= 'new Choice( \''.$this->admin_settings->field_labels[ array_search( $coltxt, $this->admin_settings->field_order ) ].'\'),';
+				$defaultStr .= 'new Choice( \''.$coltxt.'\'),';
 			}
 			$defaultStr = rtrim( $defaultStr,',' );
 		}
@@ -1492,11 +1553,87 @@ class UBC_CART extends GFAddOn
 		return $classes;
 	}
 
+	// -- Function Name : cart_add_handler
+	// -- Params : None
+	// -- Purpose : Adds an item to the cart by id
+	// -- Item can be any ubc product post (needs 'price' custom field for pricing)
+	public function cart_add_handler( $theid, $quant ) {
+		$prodpost = get_post( $theid );
+		if ( $prodpost && $prodpost->post_type == 'ubc_product' ) {
+			$prodtype = $prodpost->post_type;
+			$prodid = $prodpost->ID;
+			$prodtitle = $prodpost->post_title;
+			$prodexcerpt = $prodpost->post_excerpt;
+			$post_meta_data = get_post_custom( $prodid );
+			//what if price field does not exist?
+			if ( array_key_exists( 'price', $post_meta_data ) ) {
+				$prodprice = $post_meta_data['price'][0];
+			} else {
+				$prodprice = '0.0';
+			}
+			if ( array_key_exists( 'shipping', $post_meta_data ) ) {
+				$prodshipping = $post_meta_data['shipping'][0];
+			} else {
+				$prodshipping = '0.0';
+			}
+			if ( array_key_exists( 'shippingint', $post_meta_data ) ) {
+				$prodshippingint = $post_meta_data['shippingint'][0];
+			} else {
+				$prodshippingint = '0.0';
+			}
+			if ( array_key_exists( 'maxitems', $post_meta_data ) ) {
+				$maxitems = $post_meta_data['maxitems'][0];
+			} else {
+				$maxitems = '100';
+			}
+			if ( $quant >= $maxitems ) {
+				$prodmaxed = 1;
+			}
+			$prodquantity = $quant;
+
+			$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
+			$cart = $this->session->get( 'ubc-cart' );
+
+			if ( $cartoptions['ubcepayment'] ) {
+				$cart[] = array( 'prodid' => $prodid,'prodtitle' => $prodtitle,'prodexcerpt' => $prodexcerpt,'prodquantity' => $prodquantity,'prodmaxed' => $prodmaxed,'prodprice' => $prodprice, 'prodshipping' => $prodshipping, 'prodshippingint' => $prodshippingint );
+			} else {
+				$cart[] = array( 'prodid' => $prodid,'prodtitle' => $prodtitle,'prodexcerpt' => $prodexcerpt,'prodquantity' => $prodquantity,'prodmaxed' => $prodmaxed );
+			}
+
+			$this->session->set( 'ubc-cart',$cart );
+		}
+	}
+
 	// -- Function Name : ubc_cart_field_input
 	// -- Params : $input, $field, $value, $lead_id, $form_id
 	// -- Purpose : Used to display the cart BOTH internally (in the editor) as well
 	// -- as in the front end - uses GF is_form_editor() function
 	function ubc_cart_field_input ( $input, $field, $value, $lead_id, $form_id ) {
+		//if save and complete read ids from value and add to cart the ids
+		//if ( !isset( $_POST['gform_submit'] ) )
+		//$_GET['gf_token'] = get_user_meta( $user->ID, 'has_pending_form_' . $args['form_id'] );
+		if ( isset( $_GET['gf_token'] ) && ( 'cart' == $field['type'] ) && $value ) {
+			$id_array = array();
+			if ( isset( $_GET['gf_cart'] ) ) {
+				//num columns = 3 index of id =2/* (zero based) index of quantity = 0/* (zero based) 320
+				//unobfuscate gf_cart
+				$queryarg = $_GET['gf_cart'];
+				$key = 123456789;
+				$queryargs = explode( '9',base_convert( strrev( $queryarg ), 36, 10 ) ^ $key ); //x,y,z
+				$this->ubc_cart_reset();
+				$carray = array();
+				foreach ( $value as $rowkey => $rowval ) {
+					$carray = array_merge( $carray,( array_values( $value[ $rowkey ] ) ) );
+				}
+				$chunks = array_chunk( $carray, $queryargs[0] );
+				foreach ( $chunks as $chunk ) {
+					$this->cart_add_handler( $chunk[ $queryargs[1] ],$chunk[ $queryargs[2] ] );
+				}
+				echo '<style>li.cart_menu_item a::after{content:"'.esc_html( $this->cart_calculate_items() ).'" !important;}</style>';
+			} else {
+				return 'No items in cart';
+			}
+		}
 		if ( 'cart' == $field['type'] ) {
 			if ( ! GFCommon::is_form_editor() ) {
 				if ( ! class_exists( 'UBC_CBM' ) ) {
@@ -1622,6 +1759,109 @@ class UBC_CART extends GFAddOn
 			}
 		}
 		return $form;
+	}
+
+	// -- Function Name : ubc_cart_add_entry_links
+	// -- Params : $form
+	// -- Purpose : Try getting the headers showing on the columns
+	function ubc_cart_add_entry_links( $value, $field, $lead, $form  ) {
+		if ( 'cart' !== $field['type'] ) {
+			return $value;
+		}
+		$dom = new domDocument;
+		$dom->loadHTML( $value );
+		$tables = $dom->getElementsByTagName( 'table' );
+		$headers = $tables->item( 0 )->getElementsByTagName( 'th' );
+		$count = 0;
+		$id_column = '';
+		$title_column = '';
+		$return_value .= '<thead><tr>';
+		foreach ( $headers as $header ) {
+			$return_value .= '<th>'.$header->nodeValue.'</th>';
+			if ( ( $header->nodeValue == 'prodid' ) || ( $header->nodeValue == 'ID' ) ) {
+				$id_column = $count;
+			}
+			if ( ( $header->nodeValue == 'prodtitle' ) || ( $header->nodeValue == 'Title' ) ) {
+				$title_column = $count;
+			}
+			$count ++;
+		}
+		$return_value .= '</tr></thead><tbody>';
+		// chk if id and title exists!!!
+		if ( ($id_column >= 0 ) && ($title_column >= 0) ) {
+			$rows = $tables->item( 0 )->getElementsByTagName( 'tr' );
+			foreach ( $rows as $row ) {
+				$return_value .= '<tr>';
+				$cols = $row->getElementsByTagName( 'td' );
+				//$id_value =
+				$count = 0;
+				foreach ( $cols as $col ) {
+					if ( $title_column == $count ) {
+						$return_value .= '<td><a href="'.site_url().'/?p='.$cols->item( $id_column )->nodeValue.'">'.$col->nodeValue.'</a></td>';
+					} else {
+							$return_value .= '<td>'.$col->nodeValue.'</td>';
+					}
+					$count ++;
+				}
+				//make the link here
+					$return_value .= '</tr>';
+			}
+			return '<table class="gfield_list">'.$return_value.'</tbody></table>';
+		} else {
+			return $value;
+		}
+	}
+
+	// -- Function Name : ubc_cart_add_email_links
+	// -- Params : $email
+	// -- Purpose : Add Links to email
+	function ubc_cart_add_email_links( $value, $merge_tag, $modifier, $field, $raw_value ) {
+		if ( 'all_fields' == $merge_tag  && 'cart' == $field['type'] ) {
+			$dom = new domDocument;
+			$dom->loadHTML( $value );
+			$tables = $dom->getElementsByTagName( 'table' );
+			$headers = $tables->item( 0 )->getElementsByTagName( 'th' );
+			$count = 0;
+			$id_column = '';
+			$title_column = '';
+			$return_value .= '<thead><tr>';
+			foreach ( $headers as $header ) {
+				$return_value .= '<th style="background-image: none; border-right: 1px solid #DFDFDF; border-bottom: 1px solid #DFDFDF; padding: 6px 10px; font-family: sans-serif; font-size: 12px; font-weight: bold; background-color: #F1F1F1; color:#333; text-align:left">'.$header->nodeValue.'</th>';
+				if ( ( $header->nodeValue == 'prodid' ) || ( $header->nodeValue == 'ID' ) ) {
+					$id_column = $count;
+				}
+				if ( ( $header->nodeValue == 'prodtitle' ) || ( $header->nodeValue == 'Title' ) ) {
+					$title_column = $count;
+				}
+				$count ++;
+			}
+			$return_value .= '</tr></thead><tbody style=3D"background-color: #F9F9F9">';
+			// chk if id and title exists!!!
+			if ( ($id_column >= 0 ) && ($title_column >= 0) ) {
+				$rows = $tables->item( 0 )->getElementsByTagName( 'tr' );
+				foreach ( $rows as $row ) {
+					$return_value .= '<tr>';
+					$cols = $row->getElementsByTagName( 'td' );
+					//$id_value =
+					$count = 0;
+					foreach ( $cols as $col ) {
+						if ( $title_column == $count ) {
+							$return_value .= '<td style="padding: 6px 10px; border-right: 1px solid #DFDFDF; border-bottom: 1px solid #DFDFDF; border-top: 1px solid #FFF; font-family: sans-serif; font-size:12px;"><a href="'.site_url().'/?p='.$cols->item( $id_column )->nodeValue.'">'.$col->nodeValue.'</a></td>';
+						} else {
+							$return_value .= '<td style="padding: 6px 10px; border-right: 1px solid #DFDFDF; border-bottom: 1px solid #DFDFDF; border-top: 1px solid #FFF; font-family: sans-serif; font-size:12px;">'.$col->nodeValue.'</td>';
+						}
+						$count ++;
+					}
+					//make the link here
+						$return_value .= '</tr>';
+				}
+				return '<table class=3D"gfield_list" style="border-top: 1px solid #DFDFDF; border-left: 1px solid #DFDFDF; border-spacing: 0; padding: 0; margin: 2px 0 6px; width: 100%">'.$return_value.'</tbody></table>';
+			} else {
+				return $value;
+			}
+		} else {
+			return $value;
+		}
 	}
 
 	private function cart_get_list_input($field, $has_columns, $column, $value, $form_id) {
