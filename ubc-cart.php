@@ -100,7 +100,47 @@ class UBC_CART extends GFAddOn
 	public function init__add_shortcodes() {
 		add_shortcode( 'ubc-product', array( $this, 'add_shortcode__ubc_product' ) );
 		add_shortcode( 'ubc-product-related', array( $this, 'add_shortcode__ubc_product_related' ) );
+		add_shortcode( 'ubc-product-magnify', array( $this, 'add_shortcode__ubc_product_magnify' ) );
 	}
+
+	// -- Function Name : init__add_shortcodes
+	// -- Params : Parameters ID/Title/Price - [linked to product page] + Add to cart Button
+	// -- Default : Show settings columns - explicitly set columns [price] Add to Cart button
+	// -- Purpose : Show product with AddtoCart button
+	// -- To be used within CTLT Loop Query shortcode
+	// -- @return (string) markup for this shortcode
+	public function add_shortcode__ubc_product_magnify( $atts ) {
+		global $post;
+		$atts = shortcode_atts(
+			array(
+				'product_glass_width' => '175',
+				'product_width' => '200',
+				'product_src' => wp_get_attachment_url( get_post_thumbnail_id( get_queried_object_id() ) ),
+			),
+			$atts,
+			'ubc-product'
+		);
+		if ( isset( $atts['product_src'] ) ) {
+			$product_src = esc_url( $atts['product_src'] );
+		}
+		if ( isset( $atts['product_glass_width'] ) ) {
+			$product_glass_width = esc_html( $atts['product_glass_width'] );
+		}
+		if ( isset( $atts['product_width'] ) ) {
+			$product_width = esc_html( $atts['product_width'] );
+		}
+		$codeid = 'magnify'.rand( 0, 1000 );
+		$imgsize = getimagesize( $product_src );
+		$shortcode_output = '<div onmousemove="product_magnify(event);" class="'.$codeid.' magnify" style="width:'.$product_width.'px;margin:10px;position:relative;">
+					<div class="largeimg" style="box-shadow: 0 0 0 7px rgba(255, 255, 255, 0.85),0 0 7px 7px rgba(0, 0, 0, 0.25),inset 0 0 40px 2px rgba(0, 0, 0, 0.25);border-radius:100%;position:absolute;display: none;width:'.$product_glass_width.'px;height:'.$product_glass_width.'px;background:white url(\''.$product_src.'\') no-repeat;">
+					</div>
+					<img data-width='.$imgsize[0].' data-height='.$imgsize[1].' style="width:'.$product_width.'px;display:block;" class="smallimg" src="'.$product_src.'"/>
+					 </div>';
+
+		return $shortcode_output;
+
+	}
+
 
 	// -- Function Name : init__add_shortcodes
 	// -- Params : Parameters ID/Title/Price - [linked to product page] + Add to cart Button
@@ -216,12 +256,12 @@ class UBC_CART extends GFAddOn
 					$terms_list = wp_get_post_terms( get_the_ID(), 'ubc_product_type', array( 'fields' => 'slugs' ) );
 					if ( $filter_option ) {
 						if ( in_array( $filter_option,$terms_list ) ) {
-							$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
+							$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> '.$cartoptions['cartbtn'].'</button></td>';
 						} else {
-							$shortcode_body .= '<td class="product-button" text-align="right"><button class="disabled by-filter cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
+							$shortcode_body .= '<td class="product-button" text-align="right"><button class="disabled by-filter cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> '.$cartoptions['cartbtn'].'</button></td>';
 						}
 					} else {
-						$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
+						$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> '.$cartoptions['cartbtn'].'</button></td>';
 					}
 				}
 				$shortcode_body .= '</tr>';
@@ -308,12 +348,12 @@ class UBC_CART extends GFAddOn
 			$terms_list = wp_get_post_terms( get_the_ID(), 'ubc_product_type', array( 'fields' => 'slugs' ) );
 			if ( $filter_option ) {
 				if ( in_array( $filter_option,$terms_list ) ) {
-					$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
+					$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> '.$cartoptions['cartbtn'].'</button></td>';
 				} else {
-					$shortcode_body .= '<td class="product-button" text-align="right"><button class="disabled by-filter cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
+					$shortcode_body .= '<td class="product-button" text-align="right"><button class="disabled by-filter cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> '.$cartoptions['cartbtn'].'</button></td>';
 				}
 			} else {
-				$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> Add to Cart</button></td>';
+				$shortcode_body .= '<td class="product-button" text-align="right"><button class="cartbtn small pid_'.get_the_ID().'" href="#"  onclick="addtocart(this,'.get_the_ID().')"><i class="icon-shopping-cart"></i> '.$cartoptions['cartbtn'].'</button></td>';
 			}
 		}
 		$shortcode_header .= '</tr></thead>';
@@ -346,7 +386,7 @@ class UBC_CART extends GFAddOn
 			$cartoptions = get_option( 'ubc_cart_options' );
 			$filter_id = $cartoptions['filter'];
 			if ( has_term( $filter_id, 'ubc_product_type' ,$post->ID ) ) {
-				$content = the_post_thumbnail( array( 150, 150 ) ).$content . '<button class="cartbtn pid_'.$post->ID.'" href="#" onclick="addtocart(this,'.$post->ID.')"><i class="icon-shopping-cart"></i> Add to Cart</button><button style="margin-left:5px;" onclick="window.location.href=\''.site_url( '/checkout/' ).'\'" class="cartbtn"><i class="icon-circle-arrow-right"></i> Go to Checkout</button>';
+				$content = $content . '<button class="cartbtn pid_'.$post->ID.'" href="#" onclick="addtocart(this,'.$post->ID.')"><i class="icon-shopping-cart"></i> '.$cartoptions['cartbtn'].'</button><button style="margin-left:5px;" onclick="window.location.href=\''.site_url( '/checkout/' ).'\'" class="cartbtn"><i class="icon-circle-arrow-right"></i> Go to Checkout</button>';
 			}
 		}
 		return $content;
@@ -435,6 +475,9 @@ class UBC_CART extends GFAddOn
 		//Save Cart Label
 		add_action( 'wp_ajax_cart_savename_action', array( &$this, 'cart_savename_action_ajax_handler' ) );
 
+		//Save Cart Button Text
+		add_action( 'wp_ajax_cart_savebtn_action', array( &$this, 'cart_savebtn_action_ajax_handler' ) );
+
 		//Reset Cart Settings
 		add_action( 'wp_ajax_cart_reset_settings_action', array( &$this, 'cart_reset_settings_action_ajax_handler' ) );
 	}
@@ -499,6 +542,7 @@ class UBC_CART extends GFAddOn
 					'cart_filter_action_nonce' => wp_create_nonce( 'cart_filter_action' ),
 					'cart_menu_action_nonce' => wp_create_nonce( 'cart_menu_action' ),
 					'cart_savename_action_nonce' => wp_create_nonce( 'cart_savename_action' ),
+					'cart_savebtn_action_nonce' => wp_create_nonce( 'cart_savebtn_action' ),
 					'cart_reset_settings_action_nonce' => wp_create_nonce( 'cart_reset_settings_action' ),
 					'pluginsUrl' => plugins_url(),
 					)
@@ -517,6 +561,25 @@ class UBC_CART extends GFAddOn
 			//**********************************;
 			if ( $this->admin_settings->is_cartoption_valid( $this->admin_settings->default_options ) ) {
 				update_option( 'ubc_cart_options' , $this->admin_settings->default_options );
+			}
+			die();
+		}
+	}
+
+	// -- Function Name : cart_savebtn_action_ajax_handler
+	// -- Params : None
+	// -- Purpose : Saves Cart Button Text
+	// --
+	public function cart_savebtn_action_ajax_handler( ) {
+		if ( wp_verify_nonce( $_POST['cart_savebtn_action_nonce'], 'cart_savebtn_action' ) ) {
+			$cartbtn = sanitize_text_field( $_POST['js_data_for_php'] );
+			//**********************************
+			//*    CART OPTIONS                *
+			//**********************************;
+			$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
+			$cartoptions['cartbtn'] = $cartbtn;
+			if ( $this->admin_settings->is_cartoption_valid( $cartoptions ) ) {
+				update_option( 'ubc_cart_options' , $cartoptions );
 			}
 			die();
 		}
@@ -1055,7 +1118,7 @@ class UBC_CART extends GFAddOn
 				}
 			}
 		}
-		$cart_display = '<div class="cartinput_container cartinput_list"><h3><i class="icon-shopping-cart"></i> Cart Details</h3>';
+		$cart_display = '<div class="cartinput_container cartinput_list"><h3><i class="icon-shopping-cart"></i> '.$cartoptions['cartname'].'</h3>';
 		$cart_display .= '<table class="cartfield_list"><colgroup>';
 		for ( $colnum = 0; $colnum < count( $columns ); $colnum++ ) {
 				$cart_display .= '<col id="cartfield_list_col_'.$columns[ $colnum ]['text'].'" class="cartfield_list_col" />';
@@ -1063,8 +1126,18 @@ class UBC_CART extends GFAddOn
 		//$cart_display .= '<col class="cartfield_list_col_icon" />';
 		$cart_display .= '</colgroup>';
 		$cart_display .= '<thead><tr>';
-		foreach ( $columns as $column ) {
-				$cart_display .= "<th class='".$column['text']."-header'>" . $column['text'] . '</th>';
+		$id_column = '';
+		$title_column = '';
+		$count = 0;
+		foreach ( $columns as $key => $column ) {
+			$cart_display .= "<th class='".$column['text']."-header'>" . $column['text'] . '</th>';
+			if ( 'Title' == $column['text'] ) {
+				$title_column = 'Title';
+			}
+			if ( 'ID' == $column['text'] ) {
+				$id_column = 'ID';
+			}
+			$count ++;
 		}
 
 		$rownum = 1;
@@ -1075,7 +1148,11 @@ class UBC_CART extends GFAddOn
 				$cart_display .= "<tr class='cartfield_list_row'>";
 				$colnum = 0;
 				foreach ( $item as $key => $column ) {
-					$cart_display .= "<td data-title='".$columns[ $colnum ]['text']."' class='".$colarr[ $colnum ]."-cell'><p>".$column.'</p></td>';
+					if ( ( $columns[ $colnum ]['text'] == $title_column ) && ($id_column) && ($title_column) ) {
+						$cart_display .= "<td data-title='".$columns[ $colnum ]['text']."' class='".$colarr[ $colnum ]."-cell'><p><a href='".site_url().'/?p='.$item[ $id_column ]."'>".$column.'</a></p></td>';
+					} else {
+						$cart_display .= "<td data-title='".$columns[ $colnum ]['text']."' class='".$colarr[ $colnum ]."-cell'><p>".$column.'</p></td>';
+					}
 					$colnum++;
 					if ( $colnum == $maxcolnum ) { break;}
 				}
