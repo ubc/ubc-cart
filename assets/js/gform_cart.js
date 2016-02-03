@@ -3,6 +3,40 @@
 
 
 var columns,columnsoff;
+var magnify_native_width = 0;
+var magnify_native_height = 0;
+
+function product_magnify(e) {
+	jQuery(document).ready(function($){
+		var elem, evt = e ? e:event;
+		if (evt.srcElement)  elem = evt.srcElement;
+		else if (evt.target) elem = evt.target;
+		var elemp = $(elem).parent();
+		if(!magnify_native_width && !magnify_native_height){
+				magnify_native_width = $(elem).data('width');
+				magnify_native_height = $(elem).data('height');
+	   } else {
+				var magnify_offset = elemp.offset();
+				var mx = e.pageX - magnify_offset.left;
+				var my = e.pageY - magnify_offset.top;
+				if(mx < elemp.width() && my < elemp.height() && mx > 0 && my > 0) {
+					 elemp.find(".largeimg").fadeIn(100);
+				} else {
+					 elemp.find(".largeimg").fadeOut(100);
+					 magnify_native_width = 0;
+					 magnify_native_height = 0;
+				}
+				if($(elem).parent().find(".largeimg").is(":visible")) {
+					 var rx = Math.round(mx/elemp.find(".smallimg").width()*magnify_native_width - elemp.find(".largeimg").width()/2)*-1;
+					 var ry = Math.round(my/elemp.find(".smallimg").height()*magnify_native_height - elemp.find(".largeimg").height()/2)*-1;
+					 var bgp = rx + "px " + ry + "px";
+					 var px = mx - elemp.find(".largeimg").width()/2;
+					 var py = my - elemp.find(".largeimg").height()/2;
+					 elemp.find(".largeimg").css({left: px, top: py, backgroundPosition: bgp});
+				}
+	   }
+	});
+}
 
 function filterclick(obj){
 	jQuery('#mfilters button').removeClass('active');
@@ -32,6 +66,7 @@ function chooseform(element){
 }
 
 jQuery( document ).ready(function() {
+
 	if (cart_script_vars.maxitems) {
 		maxidarr = cart_script_vars.maxitems.split(",");
 		for (i = 0; i < maxidarr.length; i++) {
@@ -39,6 +74,7 @@ jQuery( document ).ready(function() {
 		}
 	}
 	jQuery('#gform_'+cart_script_vars.formid+' #gform_submit_button_'+cart_script_vars.formid).addClass('cartbtn');
+	jQuery('#gform_save_'+cart_script_vars.formid+'_link').addClass('cartbtn').css('display','inline').css('padding','.5em 1.5em');
 	if ('' !== cart_script_vars.cartmenu){
 		jQuery('li#menu-item-'+cart_script_vars.cartmenu+' a').attr('data-after',cart_script_vars.cartitems);
 		jQuery('<style>li#menu-item-'+cart_script_vars.cartmenu+' a:after{content: attr(data-after);color:red;margin-left:3px;}</style>').appendTo('head');
@@ -204,6 +240,25 @@ function savecartname(){
 			//change status on settings page to "Cart page exists so, clicking save will change the page title."
 			jQuery('#cartmenu_chk').removeAttr("disabled");
 			jQuery('#cartmenu_option').show();
+			jQuery('#spinner').remove();
+		}
+	 });
+	 return false;
+}
+
+
+// -- save cart button text - if name/label changed in options
+function savecartbtn(){
+	 jQuery.ajax({
+		url: cart_script_vars.ajaxurl,
+		type: 'POST',
+		data: {action: 'cart_savebtn_action',cart_savebtn_action_nonce: cart_script_vars.cart_savebtn_action_nonce,js_data_for_php: jQuery('#cartbtn').val()},
+		error: function(jqXHR, textStatus) {alert(textStatus);},
+		beforeSend: function(){
+			jQuery('#cartbtn').parent().append('<img style="width:15px;margin-left:5px;" id="spinner" src="'+ cart_script_vars.pluginsUrl +'/ubc-cart/assets/img/ajax-loader.gif">');
+		},
+		dataType: 'html',
+		success: function(response){
 			jQuery('#spinner').remove();
 		}
 	 });

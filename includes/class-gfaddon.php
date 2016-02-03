@@ -25,7 +25,7 @@ if ( class_exists( 'GFForms' ) ) {
 		protected $_short_title = 'UBC Cart';
 		public $field_order = array( 'prodid', 'prodtitle', 'prodexcerpt', 'prodquantity', 'prodmaxed', 'prodprice', 'prodshipping','prodshippingint' );
 		public $field_labels = array( 'ID', 'Title', 'Description', 'Quantity', 'Maxed', 'Price', 'Shipping', 'Shipping (Int.)' );
-		public $default_options = array( 'cartColumns' => 'prodid', 'cartColumnsoff' => 'prodtitle,prodexcerpt,prodquantity,prodmaxed', 'formid' => '0', 'filter' => '', 'ubcepayment' => false, 'showcartmenu' => '','cartname' => 'New Shopping Cart','cartpid' => '' );
+		public $default_options = array( 'cartColumns' => 'prodid', 'cartColumnsoff' => 'prodtitle,prodexcerpt,prodquantity,prodmaxed', 'formid' => '0', 'filter' => '', 'ubcepayment' => false, 'showcartmenu' => '','cartname' => 'New Shopping Cart','cartpid' => '','cartbtn' => 'Add to Cart' );
 
 		// -- Function Name : init
 		// -- Params : None
@@ -104,6 +104,17 @@ if ( class_exists( 'GFForms' ) ) {
 			}
 		}
 
+		// -- Function Name : is_cartbtn_valid
+		// -- Params : valid string
+		// -- Purpose : Validates string length > 0 and nothing else
+		public function is_cartbtn_valid($value) {
+			if ( empty( $value ) ) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+
 		// -- Function Name : is_cartpid_valid
 		// -- Params : postid
 		// -- Purpose : Check if valid postid and nothing else
@@ -121,7 +132,7 @@ if ( class_exists( 'GFForms' ) ) {
 		public function is_cartoption_valid( $options ) {
 			//check if ALL keys are valid and they are the only ones
 			if ( count( array_diff( array_keys( $this->default_options ), array_keys( $options ) ) == 0 ) ) {
-				if ( self::is_columns_valid( $options['cartColumns'] ) && self::is_columns_valid( $options['cartColumnsoff'] ) && self::is_term_valid( $options['filter'] ) && self::is_formid_valid( $options['formid'] ) && self::is_cartmenu_valid( $options['showcartmenu'] ) && self::is_cartname_valid( $options['cartname'] ) && self::is_cartpid_valid( $options['cartpid'] ) ) {
+				if ( self::is_columns_valid( $options['cartColumns'] ) && self::is_columns_valid( $options['cartColumnsoff'] ) && self::is_term_valid( $options['filter'] ) && self::is_formid_valid( $options['formid'] ) && self::is_cartmenu_valid( $options['showcartmenu'] ) && self::is_cartname_valid( $options['cartname'] ) && self::is_cartpid_valid( $options['cartpid'] ) && self::is_cartbtn_valid( $options['cartbtn'] ) ) {
 					return true;
 				} else {
 					return false;
@@ -356,6 +367,8 @@ if ( ! empty( $colstr ) ) {
 
 			<br><h3>4. Cart Settings.</h3>
 			<div style="width:100%" class="panel-instructions">
+			<h3>Cart Button Text/Label?. <input id="cartbtn" style="font-weight:normal;" type="text" name="cartbtn" value="<?php echo esc_html( $cartoptions['cartbtn'] ); ?>" />
+			<a style="font-weight:normal;" class="button-primary" type="button" onclick="savecartbtn()">Save</a></h3>
 			<?php
 			$str1 = '';
 			$ptitle = $cartoptions['cartname'];
