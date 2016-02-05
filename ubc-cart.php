@@ -100,7 +100,66 @@ class UBC_CART extends GFAddOn
 	public function init__add_shortcodes() {
 		add_shortcode( 'ubc-product', array( $this, 'add_shortcode__ubc_product' ) );
 		add_shortcode( 'ubc-product-related', array( $this, 'add_shortcode__ubc_product_related' ) );
+		add_shortcode( 'ubc-product-date', array( $this, 'add_shortcode__ubc_product_date' ) );
+		add_shortcode( 'ubc-product-multiple', array( $this, 'add_shortcode__ubc_product_button' ) );
 		add_shortcode( 'ubc-product-magnify', array( $this, 'add_shortcode__ubc_product_magnify' ) );
+	}
+
+	// -- Function Name : add_shortcode__ubc_product_button
+	// -- Params : ids (comma delimited string), label(string)
+	// -- Can be used anywhere
+	// -- @return (HTML button)
+	public function add_shortcode__ubc_product_button( $atts ) {
+		$filtered = array();
+		$atts = shortcode_atts( array( 'ids' => '', 'label' => 'add multiple to cart', 'related' => false ), $atts,'ubc-product-button' );
+		if ( $atts['related'] ) {
+			$tags = get_the_tags();
+			if ( $tags ) {
+				$tag_ids = array();
+				foreach ( $tags as $individual_tag ) {
+					$tag_ids[] = $individual_tag->term_id;
+				}
+				$args = array(
+					'post_type' => 'ubc_product',
+					'tag__in' => $tag_ids,
+					'posts_per_page' => 4,
+					'orderby' => $orderby,
+					'order' => $order,
+					'caller_get_posts' => 1,
+				);
+				$related_query = new wp_query( $args );
+				while ( $related_query->have_posts() ) {
+					$related_query->the_post();
+					$filtered[] = get_the_ID();
+				}
+				$filtered_str = implode( ',' , $filtered );
+				if ( $filtered_str ) {
+					   return '<button class="cartbtn small pid_" href="#"  onclick="addtocartmultiple(this,\''.$filtered_str.'\')"><i class="icon-shopping-cart"></i> '.$atts['label'].'</button>';
+				} else {
+					return 'no related products';
+				}
+				wp_reset_query();
+			}
+		} else {
+			$ids = $atts['ids'];
+			$filtered = array_filter( explode( ',' , $ids ),  function($v) { return ( ( ctype_digit( $v ) ) ? (( get_post_type( $v ) == 'ubc_product' ) ? true : false ) : false); } );
+			$filtered_str = implode( ',' , $filtered );
+			if ( $filtered_str ) {
+				   return '<button class="cartbtn small pid_" href="#"  onclick="addtocartmultiple(this,\''.$filtered_str.'\')"><i class="icon-shopping-cart"></i> '.$atts['label'].'</button>';
+			} else {
+				return 'parameter incorrect';
+			}
+		}
+	}
+
+	// -- Function Name : add_shortcode__ubc_product_date
+	// -- Params : Date format
+	// -- To be used within CTLT Loop Query shortcode
+	// -- @return (string) formatted date
+	public function add_shortcode__ubc_product_date( $atts ) {
+		global $post;
+		$atts = shortcode_atts( array( 'id' => $post->ID, 'format' => 'M j, Y @ G:i' ), $atts , 'ubc-product-date' );
+		return date( $atts['format'] , get_post_meta( $atts['id'], 'proddatetime', true ) );
 	}
 
 	// -- Function Name : init__add_shortcodes
@@ -575,8 +634,7 @@ class UBC_CART extends GFAddOn
 	// -- Purpose : Add plugin JS (Admin). All ajax actions nonced.
 	function admin_cart_script( ) {
 		$screen = get_current_screen( );
-		//var_dump($screen);
-		if ( 'forms_page_ubc_cart_options' == $screen->base ) {
+		if ( strpos( $screen->base, 'page_ubc_cart_options' ) !== false ) {
 				$url = plugins_url( '/assets/js/gform_cart.js' , __FILE__ );
 				wp_enqueue_script( 'jquery-ui', 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/jquery-ui.min.js', array( 'jquery' ), false );
 				wp_enqueue_script( 'cart_script', $url , array( 'jquery' ), '1.0' );
@@ -963,22 +1021,6 @@ class UBC_CART extends GFAddOn
 					$maxitems = $post_meta_data['maxitems'][0];
 				} else {
 					$maxitems = '100';
-				}
-			} else {
-				//check if taxonomy id for other special use cases
-				//In this case, check for IssueM plugin and issue_price in tax meta
-				if ( class_exists( 'IssueM' ) ) {
-					$term = get_term_by( 'id',$theid,'issuem_issue' );
-					if ( $term ) {
-						$issue_meta = get_option( 'issuem_issue_'.$theid.'_meta' );
-						$prodtype = 'ubc_product';
-						$prodid = $theid;
-						$prodtitle = $term->name;
-						$prodexcerpt = $term->description;
-						$prodprice = $issue_meta['issue_price'];
-						$prodshipping = $issue_meta['issue_shipping'];
-						$prodshippingint = $issue_meta['issue_shippingint'];
-					}
 				}
 			}
 			$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );

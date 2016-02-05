@@ -298,13 +298,23 @@ function reset_settings(){
 	 return false;
 }
 
+// -- addtocart - Adds item with postids to cart
+function addtocartmultiple(objmult, postidarr){
+	postids = postidarr.split(',');
+	//alert(postids.length);
+	for (i = 0; i < postids.length; i++) { 
+		obj = (jQuery('.pid_'+postids[i]).get());
+    		addtocart(obj,postids[i]);
+	}
+}
 
 // -- addtocart - Adds item with postid to cart
 function addtocart(obj,postid){
 	 jQuery.ajax({
-			 url: cart_script_vars.ajaxurl,
-			 type: 'POST',
-			 data: {
+		url: cart_script_vars.ajaxurl,
+		async: false,
+		type: 'POST',
+		data: {
 		action: 'cart_add_action',
 		cart_add_action_nonce: cart_script_vars.cart_add_action_nonce,
 		js_data_for_php: postid
