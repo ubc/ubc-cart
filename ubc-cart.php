@@ -142,7 +142,10 @@ class UBC_CART extends GFAddOn
 			}
 		} else {
 			$ids = $atts['ids'];
-			$filtered = array_filter( explode( ',' , $ids ),  function($v) { return ( ( ctype_digit( $v ) ) ? (( get_post_type( $v ) == 'ubc_product' ) ? true : false ) : false); } );
+			$filtered = array_filter( explode( ',' , $ids ),
+				function( $v ) {
+					return ( ( ctype_digit( $v ) ) ? ( ( get_post_type( $v ) == 'ubc_product' ) ? true : false ) : false);
+				} );
 			$filtered_str = implode( ',' , $filtered );
 			if ( $filtered_str ) {
 				   return '<button class="cartbtn small pid_" href="#"  onclick="addtocartmultiple(this,\''.$filtered_str.'\')"><i class="icon-shopping-cart"></i> '.$atts['label'].'</button>';
