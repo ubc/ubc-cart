@@ -478,6 +478,7 @@ text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
 .color-shape.wide, .color-shape.big { width: 150px; }
 .color-shape.tall, .color-shape.big { height: 150px; }
 
+#cart-details{clear:both;padding-bottom:15px;}
 .cartfield_list{width:100%;border-collapse:collapse;border-top:none;}
 .cartfield_list th{padding:5px;text-align:left;border:1px solid rgba(51, 51, 51, 0.1)}
 th.cartfield_list_col_icon{width:26px;border:none;}
