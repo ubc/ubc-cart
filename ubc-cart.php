@@ -198,12 +198,7 @@ class UBC_CART extends GFAddOn
 			$imgsize[0] = $imgsizewp[1];
 			$imgsize[1] = $imgsizewp[2];
 		}
-		$shortcode_output = '<div onmousemove="product_magnify(event);" class="'.$codeid.' magnify" style="width:'.$product_width.'px;margin:10px;position:relative;">
-					<div class="largeimg" style="box-shadow: 0 0 0 7px rgba(255, 255, 255, 0.85),0 0 7px 7px rgba(0, 0, 0, 0.25),inset 0 0 40px 2px rgba(0, 0, 0, 0.25);border-radius:100%;position:absolute;display: none;width:'.$product_glass_width.'px;height:'.$product_glass_width.'px;background:white url(\''.$product_src.'\') no-repeat;">
-					</div>
-					<img data-width='.$imgsize[0].' data-height='.$imgsize[1].' style="width:'.$product_width.'px;display:block;" class="smallimg" src="'.$product_src.'"/>
-					 </div>';
-
+		$shortcode_output = '<div onmousemove="product_magnify(event);" class="'.$codeid.' magnify" style="width:'.$product_width.'px;margin:10px;position:relative;"><div class="largeimg" style="box-shadow: 0 0 0 7px rgba(255, 255, 255, 0.85),0 0 7px 7px rgba(0, 0, 0, 0.25),inset 0 0 40px 2px rgba(0, 0, 0, 0.25);border-radius:100%;position:absolute;display: none;width:'.$product_glass_width.'px;height:'.$product_glass_width.'px;background:white url(\''.$product_src.'\') no-repeat;"></div><img data-width='.$imgsize[0].' data-height='.$imgsize[1].' style="width:'.$product_width.'px;display:block;" class="smallimg" src="'.$product_src.'"/></div>';
 		return $shortcode_output;
 
 	}
