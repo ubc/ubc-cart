@@ -66,13 +66,17 @@ get_header();
 					<?php //the_excerpt(); ?>
 					<?php
 					if ( $filter_option ) {
-						if ( in_array( $filter_option,$terms_list ) ) {
+						if ( in_array( $filter_option,$terms_list ) && ! UBC_CART::cart_item_expired($post->ID, $filter_option)) { 
 							echo '<button class="cartbtn small pid_'.absint( $post->ID ).'" href="#"  onclick="addtocart(this,'.absint( $post->ID ).')"><i class="icon-shopping-cart"></i> '.$cartoptions['cartbtn'].'</button>';
 						} else {
 							echo '<button class="cartbtn disabled small pid_'.absint( $post->ID ).'" href="#"  onclick=""><i class="icon-shopping-cart"></i> '.$cartoptions['cartbtn'].'</button>';
 						}
 					} else {
-						echo '<button class="cartbtn small pid_'.absint( $post->ID ).'" href="#"  onclick="addtocart(this,'.absint( $post->ID ).')"><i class="icon-shopping-cart"></i> '.$cartoptions['cartbtn'].'</button>';
+						if ( UBC_CART::cart_item_expired( $post->ID, $filter_option ) ) {
+							echo '<button class="cartbtn disabled small pid_'.absint( $post->ID ).'" href="#"  onclick=""><i class="icon-shopping-cart"></i> '.$cartoptions['cartbtn'].'</button>';
+						} else {
+							echo '<button class="cartbtn small pid_'.absint( $post->ID ).'" href="#"  onclick="addtocart(this,'.absint( $post->ID ).')"><i class="icon-shopping-cart"></i> '.$cartoptions['cartbtn'].'</button>';
+						}
 					}
 					?>
 				</div><!-- .entry-summary -->

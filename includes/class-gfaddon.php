@@ -25,7 +25,7 @@ if ( class_exists( 'GFForms' ) ) {
 		protected $_short_title = 'UBC Cart';
 		public $field_order = array( 'prodid', 'prodtitle', 'prodexcerpt', 'prodquantity', 'prodmaxed', 'prodprice', 'prodshipping','prodshippingint' );
 		public $field_labels = array( 'ID', 'Title', 'Description', 'Quantity', 'Maxed', 'Price', 'Shipping', 'Shipping (Int.)' );
-		public $default_options = array( 'cartColumns' => 'prodid', 'cartColumnsoff' => 'prodtitle,prodexcerpt,prodquantity,prodmaxed', 'formid' => '0', 'filter' => '', 'ubcepayment' => false, 'showcartmenu' => '','cartname' => 'New Shopping Cart','cartpid' => '','cartbtn' => 'Add to Cart' );
+		public $default_options = array( 'cartColumns' => 'prodid', 'cartColumnsoff' => 'prodtitle,prodexcerpt,prodquantity,prodmaxed', 'formid' => '0', 'filter' => '', 'ubcepayment' => false, 'showcartmenu' => '','cartname' => 'New Shopping Cart','cartpid' => '','cartbtn' => 'Add to Cart' , 'dand' => 0 );
 
 		// -- Function Name : init
 		// -- Params : None
@@ -126,13 +126,20 @@ if ( class_exists( 'GFForms' ) ) {
 			}
 		}
 
+		// -- Function Name : is_dandd
+		// -- Params : postid
+		// -- Purpose : Check if valid post types for dandd
+		public function is_dandd($value) {
+				return true;
+		}
+
 		// -- Function Name : is_cartoption_valid
 		// -- Params : cart options
 		// -- Purpose : Validates all keys and values of the cart options
 		public function is_cartoption_valid( $options ) {
 			//check if ALL keys are valid and they are the only ones
 			if ( count( array_diff( array_keys( $this->default_options ), array_keys( $options ) ) == 0 ) ) {
-				if ( self::is_columns_valid( $options['cartColumns'] ) && self::is_columns_valid( $options['cartColumnsoff'] ) && self::is_term_valid( $options['filter'] ) && self::is_formid_valid( $options['formid'] ) && self::is_cartmenu_valid( $options['showcartmenu'] ) && self::is_cartname_valid( $options['cartname'] ) && self::is_cartpid_valid( $options['cartpid'] ) && self::is_cartbtn_valid( $options['cartbtn'] ) ) {
+				if ( self::is_columns_valid( $options['cartColumns'] ) && self::is_columns_valid( $options['cartColumnsoff'] ) && self::is_term_valid( $options['filter'] ) && self::is_formid_valid( $options['formid'] ) && self::is_cartmenu_valid( $options['showcartmenu'] ) && self::is_cartname_valid( $options['cartname'] ) && self::is_cartpid_valid( $options['cartpid'] ) && self::is_cartbtn_valid( $options['cartbtn'] ) && self::is_dandd( $options['dandd'] ) ) {
 					return true;
 				} else {
 					return false;
@@ -426,6 +433,7 @@ if ( ! empty( $colstr ) ) {
 				<span id="cartmenu_option"><p><?php echo esc_html( $str2 ); ?></p>
 				<h3>Do you want to show the Cart in the primary menu?.
 				<input id="cartmenu_chk" type="checkbox" name="showcartmenu" value="0"<?php checked( ! empty( $cartoptions['showcartmenu'] ) ); echo esc_html( $disabled ) ?> /></h3></span>
+				<h3>Allow Drag and Drop to change order of items in cart. <input id="dandd_chk" name="dandd_chk" type="checkbox" value="1" <?php checked( '1', $cartoptions['dandd'] ); ?> /></h3>
 			</div>
 			<br><h3>5. Shortcode descriptions.</h3>
 			<div class="gcolumn_wrapper"><ol>

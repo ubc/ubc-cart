@@ -539,10 +539,10 @@ li.cart_menu_item a:after{
 }
 
 .cartbtn.small{
-	//font-size:smaller;
-	font-size:10px; 
-	height:30px;
-	padding: 0.1em 1.0em;
+    /*font-size:smaller;*/
+    font-size:10px;
+    height:30px;
+    padding: 0.1em 1.0em;
 }
 
 .cartbtn.filter{border-bottom-right-radius:0;border-top-left-radius:0}

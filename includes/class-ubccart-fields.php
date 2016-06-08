@@ -124,11 +124,11 @@ final class UBCCARTCustomFields {
 		} else {
 			if ( strtotime( $prodxdatetime ) < current_time( 'timestamp' ) ) {
 				$past = 'style="color:#a00;"';
-				$never = '<a id="creset" onclick="creset();" href="#">Reset</a>';
+				$never = 'Reset';
 			}
 		}
 		echo '<label class="proddatetime" style="display: block;">End: <span id="expirydate" '.wp_kses_post( $past ).'><strong> '. esc_html( $saveddate ).'</strong></span>&nbsp;<a id="expirybtn" href="#" onclick="showcdate();jQuery(\'#cexpirydate\').toggle(500);(jQuery(\'#expirybtn\').text() === \'Edit\') ? jQuery(\'#expirybtn\').text(\'Close\') : jQuery(\'#expirybtn\').text(\'Edit\');
-">Edit</a> '. wp_kses_post( $never ).'</span></label>';
+">Edit</a><a id="creset" onclick="creset();" href="#"> '. esc_html( $never ).'</a></span></label>';
 
 		$edit = ( ! empty( $savedtime ) ) ? true:false;
 

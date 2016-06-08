@@ -39,10 +39,12 @@ function product_magnify(e) {
 }
 
 function filterclick(obj){
+	if (obj) {
 	jQuery('#mfilters button').removeClass('active');
 	jQuery(obj).addClass('active');
 	var filterValue = jQuery(obj).attr('data-filter');
 	jQuery('#iso-container').isotope({ filter: filterValue });
+	}
 }
 
 // -- chooseform - sets option for formid to be used on checkout page - option
@@ -65,7 +67,45 @@ function chooseform(element){
 		 return false;
 }
 
+function make_cart_sortable(){
+// Return a helper with preserved width of cells  
+var fixHelper = function(e, ui) {  
+  ui.children().each(function() {  
+    jQuery(this).width(jQuery(this).width());  
+  });  
+  return ui;  
+};
+	jQuery('#cart-details table.sortable.cartfield_list tbody').sortable({
+  		axis: "y",
+		//handle: "td",
+		cursor: "move",
+		helper: fixHelper,
+		tolerance: "pointer",
+		update: function( event, ui ) {
+			var sortedIDs = jQuery(this).sortable( "toArray" );
+			jQuery.ajax({
+				url: cart_script_vars.ajaxurl,
+				type: 'POST',
+				data: {action: 'cart_order_action',cart_order_action_nonce: cart_script_vars.cart_order_action_nonce,js_data_for_php: sortedIDs.join()},
+				error: function(jqXHR, textStatus) {alert(textStatus);},
+				beforeSend: function(){
+			 	},
+				dataType: 'html',
+				success: function(response){
+					jQuery('.cartfield_list tbody.ui-sortable tr').each(function(index){
+         					jQuery(this).attr('id', index);
+      					});
+				}
+			 });
+		}
+	}).disableSelection();
+}
+
 jQuery( document ).ready(function() {
+	//Can we only run below on shortcode pages?
+        filterclick(jQuery('#mfilters button.default').get(0));
+	make_cart_sortable();
+
 
 	if (cart_script_vars.maxitems) {
 		maxidarr = cart_script_vars.maxitems.split(",");
@@ -102,6 +142,7 @@ jQuery( document ).ready(function() {
 			 });
 			 return false;
 	});
+
 	// toggles whether the menu item shows
 	jQuery('#cartmenu_chk').on('change', function($) {
 		checked_value = (jQuery(this).prop('checked') ? 1 : 0 ); //false or true
@@ -121,6 +162,27 @@ jQuery( document ).ready(function() {
 			 });
 			 return false;
 	});
+
+	// toggles whether the cart is drag and drop
+	jQuery('#dandd_chk').on('change', function($) {
+		checked_value = (jQuery(this).prop('checked') ? 1 : 0 ); //false or true
+		//alert(checked_value);
+			 jQuery.ajax({
+					 url: cart_script_vars.ajaxurl,
+					 type: 'POST',
+					 data: {action: 'cart_dandd_action',cart_dandd_action_nonce: cart_script_vars.cart_dandd_action_nonce,js_data_for_php: checked_value},
+					 error: function(jqXHR, textStatus) {alert(textStatus);},
+					 beforeSend: function(){
+							jQuery('#dandd_chk').parent().append('<img style="width:15px;margin-left:5px;" id="spinner" src="'+ cart_script_vars.pluginsUrl +'/ubc-cart/assets/img/ajax-loader.gif">');
+				 },
+					 dataType: 'html',
+					 success: function(response){
+						jQuery('#spinner').remove();
+					 }
+			 });
+			 return false;
+	});
+
 });
 
 // -- cartSelectColumns - sets the columns in the off and selected state - option
@@ -201,6 +263,7 @@ function cart_delete_item(element, itemnum, onform){
 				jQuery('li#menu-item-'+cart_script_vars.cartmenu+' a').attr('data-after',cart_script_vars.cartitems);
 				if (resarr[5])
 					jQuery('.pid_'+resarr[5]).removeClass('disabled');
+				make_cart_sortable();
 			 }
 	 });
 	 return false;
@@ -338,6 +401,7 @@ function addtocart(obj,postid){
 				}
 				if (resarr[2])
 					jQuery('.pid_'+resarr[2]).addClass('disabled');
+				make_cart_sortable();
 		 }
 	 });
 	 return false;
