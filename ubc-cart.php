@@ -147,16 +147,15 @@ class UBC_CART extends GFAddOn
 			$filter_active = $atts['filter_active'];
 		}
 
+		$pfilter_terms = ( ! empty( $atts['filter_terms'] ) ? explode( ',',$atts['filter_terms'] ) : false );
 
-		$pfilter_terms = ( ! empty( $atts['filter_terms'] ) ? explode(',',$atts['filter_terms']) : false );
+		$pfilter_exclude = ( ! empty( $atts['filter_exclude'] ) && ! $pfilter_terms ? explode( ',',$atts['filter_exclude'] ) : false );
 
-		$pfilter_exclude = ( ! empty( $atts['filter_exclude'] ) && ! $pfilter_terms ? explode(',',$atts['filter_exclude']) : false );
+		$excerpt = ( $atts['excerpt'] == 'false' ? false : true );
 
-		$excerpt = ($atts['excerpt'] == 'false' ? false : true );
+		$showall_button = ( $atts['showall_button'] == 'true' ? true : false );
 
-		$showall_button = ($atts['showall_button'] == 'true' ? true : false );
-
-		$checkout_button = ($atts['checkout_button'] == 'true'  ? true : false );
+		$checkout_button = ( $atts['checkout_button'] == 'true'  ? true : false );
 
 		//**********************************
 		//*    CART OPTIONS                *
@@ -172,30 +171,30 @@ class UBC_CART extends GFAddOn
 		}
 		?>
 
-		<h1><?php echo $title; ?></h1>
+		<h1><?php echo esc_html( $title ); ?></h1>
 		<div id="mfilters">
-			<?php if ($showall_button) { ?>
+			<?php if ( $showall_button ) { ?>
 			<button onclick="filterclick(this)" class="small cartbtn active" data-filter="*">show all</button>
 			<?php }
 
-			if ($pfilter_terms) {
+			if ( $pfilter_terms ) {
 				$include_term_ids = array();
-				foreach( $pfilter_terms as $pslug ) {
-   					$pterm = get_term_by( 'slug', $pslug, 'ubc_product_type' );
-    					$include_term_ids[] = $pterm->term_id;
+				foreach ( $pfilter_terms as $pslug ) {
+					   $pterm = get_term_by( 'slug', $pslug, 'ubc_product_type' );
+						$include_term_ids[] = $pterm->term_id;
 				}
 
-				$terms = get_terms( 'ubc_product_type', array('include' => $include_term_ids));
+				$terms = get_terms( 'ubc_product_type', array( 'include' => $include_term_ids ) );
 			} else {
-				if ($pfilter_exclude) {
+				if ( $pfilter_exclude ) {
 					$exclude_term_ids = array();
-					foreach( $pfilter_exclude as $pslug ) {
-   						$pterm = get_term_by( 'slug', $pslug, 'ubc_product_type' );
-    						$exclude_term_ids[] = $pterm->term_id;
+					foreach ( $pfilter_exclude as $pslug ) {
+							$pterm = get_term_by( 'slug', $pslug, 'ubc_product_type' );
+							$exclude_term_ids[] = $pterm->term_id;
 					}
 
-					$terms = get_terms( 'ubc_product_type', array('exclude' => $exclude_term_ids));
-				} else { 
+					$terms = get_terms( 'ubc_product_type', array( 'exclude' => $exclude_term_ids ) );
+				} else {
 					$terms = get_terms( 'ubc_product_type' );
 				}
 			}
@@ -203,12 +202,12 @@ class UBC_CART extends GFAddOn
 			foreach ( $terms as $term ) {
 				$default_button = (($term->slug == $filter_active) ? ' default' : '');
 				if ( $term->slug == $filter_option ) {
-						echo '<button  style="margin-left:5px;" onclick="filterclick(this)" class="cartbtn small filter'.$default_button.'" data-filter=".'.esc_html( $term->slug ).'">'.esc_html( $term->name ).'<span class="filtmark">*<span></button>';
+						echo '<button  style="margin-left:5px;" onclick="filterclick(this)" class="cartbtn small filter'.esc_html( $default_button ).'" data-filter=".'.esc_html( $term->slug ).'">'.esc_html( $term->name ).'<span class="filtmark">*<span></button>';
 				} else {
-						echo '<button  style="margin-left:5px;" onclick="filterclick(this)" class="cartbtn small filter'.$default_button.'" data-filter=".'.esc_html( $term->slug ).'">'.esc_html( $term->name ).'</button>';
+						echo '<button  style="margin-left:5px;" onclick="filterclick(this)" class="cartbtn small filter'.esc_html( $default_button ).'" data-filter=".'.esc_html( $term->slug ).'">'.esc_html( $term->name ).'</button>';
 				}
 			}
-			if ($checkout_button) {
+			if ( $checkout_button ) {
 			?>
 			<button  style="margin-left:5px;" onclick="window.location.href='<?php echo esc_url( site_url( '/checkout/' ) ); ?>'" class="small cartbtn"><i class="icon-circle-arrow-right"></i> Go to Checkout</button>
 			<?php } ?>
@@ -219,21 +218,21 @@ class UBC_CART extends GFAddOn
 
 		$args = array(
 			'post_type' => 'ubc_product',
-			'posts_per_page' => -1, 
+			'posts_per_page' => -1,
 			'orderby' => $orderby,
 			'order' => $order,
 		);
 
-		if ($pfilter_terms) {
+		if ( $pfilter_terms ) {
 			$args['tax_query'] = array(
 				array(
 					'taxonomy' => 'ubc_product_type',
 					'field'    => 'slug',
 					'terms'    => $pfilter_terms,
-				)
+				),
 			);
 		}
-		
+
 		$archive_query = new wp_query( $args );
 		if ( $archive_query->have_posts() ) {
 			$output .= '<div id="iso-container">';
@@ -244,20 +243,20 @@ class UBC_CART extends GFAddOn
 
 				$output .= '<div id="post-'.$post->ID.'" data-category="all, '.esc_html( $termstr ).'" class="isoitem element-item all '.esc_html( $termstr ).'"><div class="product-summary" style="margin:auto;text-align:center;">';
 
-				$output .= '<a href="' . get_permalink($post->ID) . '" title="' . esc_attr( $_post->post_title ) . '">' . get_the_post_thumbnail( $post->ID,'thumbnail' ) . '</a>';
+				$output .= '<a href="' . get_permalink( $post->ID ) . '" title="' . esc_attr( $_post->post_title ) . '">' . get_the_post_thumbnail( $post->ID,'thumbnail' ) . '</a>';
 
-				$output .= '<a style="text-decoration:none;" href="'.get_permalink($post->ID).'" rel="bookmark" title="'.esc_attr( $post->post_title ).'"><h3>'.esc_attr( $post->post_title ).'</h3></a>';
+				$output .= '<a style="text-decoration:none;" href="'.get_permalink( $post->ID ).'" rel="bookmark" title="'.esc_attr( $post->post_title ).'"><h3>'.esc_attr( $post->post_title ).'</h3></a>';
 
 				if ( $excerpt ) {
 					$excerpt_txt = '';
 					$excerpt_raw = wp_trim_words( $post->post_content, $atts['excerpt_words'], '' );
-					if (strlen( $excerpt_raw) > 5) {
+					if ( strlen( $excerpt_raw ) > 5 ) {
 						$excerpt_txt = '<p>'.$excerpt_raw.'</p>';
 					}
 					$excerpt_txt .= '<p><a href="' . get_permalink( $post ) . '" title="">'.$atts['excerpt_more'].'</a></p>';
 					$output .= $excerpt_txt;
-				}	
-		
+				}
+
 				if ( $filter_option ) {
 					if ( in_array( $filter_option,$terms_list ) ) {
 						$output .= '<button class="cartbtn small pid_'.absint( $post->ID ).'" href="#"  onclick="addtocart(this,'.absint( $post->ID ).')"><i class="icon-shopping-cart"></i> '.$cartoptions['cartbtn'].'</button>';
@@ -286,8 +285,8 @@ class UBC_CART extends GFAddOn
 	public function add_shortcode__ubc_product_type( $atts ) {
 		$filtered = array();
 		$atts = shortcode_atts( array( 'related' => false ), $atts,'ubc-product-type' );
-		if ( $atts['related'] ) {  
-			if ( $atts['related'] == 'tags' ) { 
+		if ( $atts['related'] ) {
+			if ( $atts['related'] == 'tags' ) {
 				$tags = get_the_tags();
 				if ( $tags ) {
 					$tag_ids = array();
@@ -310,25 +309,25 @@ class UBC_CART extends GFAddOn
 					//$filtered_str = implode( ',' , $filtered );
 					if ( $filtered ) {
 						$output = array();
-						foreach ($filtered as $postid) {
-							$product_terms = wp_get_object_terms($postid, 'ubc_product_type');
+						foreach ( $filtered as $postid ) {
+							$product_terms = wp_get_object_terms( $postid, 'ubc_product_type' );
 							if ( ! empty( $product_terms ) ) {
 								if ( ! is_wp_error( $product_terms ) ) {
-									foreach( $product_terms as $term ) {
-										$output[] = '<a href="'.get_term_link($term->slug, 'ubc_product_type').'">'. esc_html( $term->name ) . '</a> ';
+									foreach ( $product_terms as $term ) {
+										$output[] = '<a href="'.get_term_link( $term->slug, 'ubc_product_type' ).'">'. esc_html( $term->name ) . '</a> ';
 									}
 								}
 							}
 						}
-						$uniquearr = array_unique($output);
-						return implode($uniquearr);
+						$uniquearr = array_unique( $output );
+						return implode( $uniquearr );
 					} else {
 						return 'no related products';
 					}
 					wp_reset_query();
 				}
-			} else { 
-				if ( $atts['related'] == 'permalink' ) { 
+			} else {
+				if ( $atts['related'] == 'permalink' ) {
 					$url = get_permalink();
 					$query_args = array(
 						'post_type' => 'ubc_product',
@@ -339,40 +338,40 @@ class UBC_CART extends GFAddOn
 								'key' => '_links_to',
 								'value' => $url,
 								'compare' => 'LIKE',
-							)
+							),
 						),
 					);
 					$ids = new WP_Query( $query_args );
-					if ($ids) {
+					if ( $ids ) {
 						$output = array();
-						foreach ($ids->posts as $postid) {
-							$product_terms = wp_get_object_terms($postid, 'ubc_product_type');
+						foreach ( $ids->posts as $postid ) {
+							$product_terms = wp_get_object_terms( $postid, 'ubc_product_type' );
 							if ( ! empty( $product_terms ) ) {
 								if ( ! is_wp_error( $product_terms ) ) {
-									foreach( $product_terms as $term ) {
-										$output[] = '<a href="'.get_term_link($term->slug, 'ubc_product_type').'">'. esc_html( $term->name ) . '</a> ';
+									foreach ( $product_terms as $term ) {
+										$output[] = '<a href="'.get_term_link( $term->slug, 'ubc_product_type' ).'">'. esc_html( $term->name ) . '</a> ';
 									}
 								}
 							}
 						}
-						$uniquearr = array_unique($output);
-						return implode($uniquearr);
-						
+						$uniquearr = array_unique( $output );
+						return implode( $uniquearr );
+
 					}
 				}
 			}
 		} else {
 			$postid = get_queried_object_id();
 			$output = array();
-			$product_terms = wp_get_object_terms($postid, 'ubc_product_type');
+			$product_terms = wp_get_object_terms( $postid, 'ubc_product_type' );
 			if ( ! empty( $product_terms ) ) {
 				if ( ! is_wp_error( $product_terms ) ) {
-					foreach( $product_terms as $term ) {
-						$output[] = '<a href="'.get_term_link($term->slug, 'ubc_product_type').'">'. esc_html( $term->name ) . '</a> ';
+					foreach ( $product_terms as $term ) {
+						$output[] = '<a href="'.get_term_link( $term->slug, 'ubc_product_type' ).'">'. esc_html( $term->name ) . '</a> ';
 					}
 				}
 			}
-			return implode($output);
+			return implode( $output );
 		}
 	}
 
@@ -384,8 +383,8 @@ class UBC_CART extends GFAddOn
 	public function add_shortcode__ubc_product_button( $atts ) {
 		$filtered = array();
 		$atts = shortcode_atts( array( 'ids' => '', 'label' => 'add multiple to cart', 'related' => false ), $atts,'ubc-product-button' );
-		if ( $atts['related'] ) {  
-			if ( $atts['related'] == 'tags' ) { 
+		if ( $atts['related'] ) {
+			if ( $atts['related'] == 'tags' ) {
 				$tags = get_the_tags();
 				if ( $tags ) {
 					$tag_ids = array();
@@ -395,7 +394,7 @@ class UBC_CART extends GFAddOn
 					$args = array(
 						'post_type' => 'ubc_product',
 						'tag__in' => $tag_ids,
-						'posts_per_page' => -1,  
+						'posts_per_page' => -1,
 						'orderby' => $orderby,
 						'order' => $order,
 						'caller_get_posts' => 1,
@@ -414,7 +413,7 @@ class UBC_CART extends GFAddOn
 					wp_reset_query();
 				}
 			} else { //permalink
-				if ( $atts['related'] == 'permalink' ) { 
+				if ( $atts['related'] == 'permalink' ) {
 					$url = get_permalink();
 					$query_args = array(
 						'post_type' => 'ubc_product',
@@ -425,13 +424,13 @@ class UBC_CART extends GFAddOn
 								'key' => '_links_to',
 								'value' => $url,
 								'compare' => 'LIKE',
-							)
+							),
 						),
 					);
 					$ids = new WP_Query( $query_args );
 
-					if ($ids->posts) {
-						return '<button class="cartbtn small pid_" href="#"  onclick="addtocartmultiple(this,\''.implode(',',$ids->posts).'\')"><i class="icon-shopping-cart"></i> '.$atts['label'].'</button>';
+					if ( $ids->posts ) {
+						return '<button class="cartbtn small pid_" href="#"  onclick="addtocartmultiple(this,\''.implode( ',',$ids->posts ).'\')"><i class="icon-shopping-cart"></i> '.$atts['label'].'</button>';
 					}
 				}
 			}
@@ -741,18 +740,18 @@ class UBC_CART extends GFAddOn
 	// -- Function Name : cart_item_expired
 	// -- Params : $postid, $filter_option (if set)
 	// -- Purpose : Checks post end date vs current date and sets availability
-	static function cart_item_expired($postid,$filter_option){
-		$enddate = get_post_meta( $postid, 'prodxdatetime', true ) ;
-		$never = new DateTime('1970-01-01 00:00:00'); //strtotime( 'Jan 1, 1970 @ 00:00' );//
-		if ($enddate  && ($enddate != $never)) { //end date set
+	static function cart_item_expired( $postid, $filter_option ) {
+		$enddate = get_post_meta( $postid, 'prodxdatetime', true );
+		$never = new DateTime( '1970-01-01 00:00:00' ); //strtotime( 'Jan 1, 1970 @ 00:00' );//
+		if ( $enddate  && ( $enddate != $never ) ) { //end date set
 			$currentdate = current_time( 'timestamp' );
-			if (($currentdate > $enddate)) {
+			if ( $currentdate > $enddate ) {
 				$filter_term = get_term( $filter_option, 'ubc_product_type' );
 				$filter_slug = $filter_term->slug;
 				if ( has_term( $filter_slug, 'ubc_product_type' ,$postid ) ) {
-   					wp_remove_object_terms( $postid, $filter_slug, 'ubc_product_type' );
+					   wp_remove_object_terms( $postid, $filter_slug, 'ubc_product_type' );
 				}
- 				return true;
+				 return true;
 			}
 		}
 		return false;
@@ -771,7 +770,7 @@ class UBC_CART extends GFAddOn
 			//**********************************
 			$cartoptions = get_option( 'ubc_cart_options' );
 			$filter_id = $cartoptions['filter'];
-			if ( has_term( $filter_id, 'ubc_product_type' ,$post->ID ) && (! $this->cart_item_expired($post->ID, $filter_id))) {
+			if ( has_term( $filter_id, 'ubc_product_type' ,$post->ID ) && ( ! $this->cart_item_expired( $post->ID, $filter_id ) ) ) {
 				$content = $content . '<button class="cartbtn pid_'.$post->ID.' filterid_'.$filter_id.'" href="#" onclick="addtocart(this,'.$post->ID.')"><i class="icon-shopping-cart"></i> '.$cartoptions['cartbtn'].'</button><button style="margin-left:5px;" onclick="window.location.href=\''.site_url( '/checkout/' ).'\'" class="cartbtn"><i class="icon-circle-arrow-right"></i> Go to Checkout</button>';
 			}
 		}
@@ -782,7 +781,6 @@ class UBC_CART extends GFAddOn
 	// -- Params : None
 	// -- Purpose : All Gravity Forms Hooks
 	private function add_gf_hooks( ) {
-
 
 		// Add a custom field button to the advanced to the field editor
 		add_filter( 'gform_add_field_buttons', array( &$this, 'ubc_cart_add_field' ) );
@@ -918,7 +916,6 @@ class UBC_CART extends GFAddOn
 		//Toggle dandd for cart
 		add_action( 'wp_ajax_cart_dandd_action', array( &$this, 'cart_dandd_action_ajax_handler' ) );
 
-
 		//Save Cart Label
 		add_action( 'wp_ajax_cart_savename_action', array( &$this, 'cart_savename_action_ajax_handler' ) );
 
@@ -949,7 +946,7 @@ class UBC_CART extends GFAddOn
 		}
 		if ( ( ( is_single()||is_archive() ) && get_post_type( ) == 'ubc_product' ) || $skip ) {
 			$url = plugins_url( '/assets/js/gform_cart.js' , __FILE__ );
-			wp_enqueue_script( 'cart_script', $url , array( 'jquery', 'jquery-ui-core', 'jquery-ui-sortable'  ), '1.0' );
+			wp_enqueue_script( 'cart_script', $url , array( 'jquery', 'jquery-ui-core', 'jquery-ui-sortable' ), '1.0' );
 			//wp_enqueue_script( 'cart_script', $url , array( 'jquery-ui-core' ), '1.0' );
 			//wp_enqueue_script( 'cart_script', $url , array( 'jquery-ui-sortable' ), '1.0' );
 			wp_localize_script('cart_script', 'cart_script_vars',
@@ -1007,19 +1004,19 @@ class UBC_CART extends GFAddOn
 	// -- Purpose : Changes items order in Cart
 	public function cart_order_action_ajax_handler( ) {
 		if ( wp_verify_nonce( $_POST['cart_order_action_nonce'], 'cart_order_action' ) ) {
-			        $order_string = $_POST['js_data_for_php'];
-				$order_array = explode(',',$order_string);
+				$order_string = $_POST['js_data_for_php'];
+				$order_array = explode( ',',$order_string );
 				//**********************************
 				//*    CART OPTIONS                *
 				//**********************************
 				$cart = $this->session->get( 'ubc-cart' );
-uksort($cart, function($key1, $key2) use ($order_array) {
-    return (array_search($key1, $order_array) > array_search($key2, $order_array));
-});
-				$cart = array_merge($cart);
+				uksort( $cart, function( $key1, $key2 ) use ( $order_array ) {
+					return ( array_search( $key1, $order_array ) > array_search( $key2, $order_array ) );
+				});
+				$cart = array_merge( $cart );
 				//echo print_r($cart,true);
 				$this->session->set( 'ubc-cart', $cart );
-			die();
+				die();
 		}
 	}
 
@@ -1408,7 +1405,7 @@ uksort($cart, function($key1, $key2) use ($order_array) {
 			$cartoptions = get_option( 'ubc_cart_options',$this->admin_settings->default_options );
 			$cart = $this->session->get( 'ubc-cart' );
 			$filter_options = $cartoptions['filter'];
-			if ( ( 'ubc_product' == $prodtype ) && ! $this->cart_item_expired($prodid,$filter_options) ) {
+			if ( ( 'ubc_product' == $prodtype ) && ! $this->cart_item_expired( $prodid,$filter_options ) ) {
 				//** Check if id exists in cart then **check for single
 				$maxid = '';
 				$cartkey = false;
@@ -1443,7 +1440,7 @@ uksort($cart, function($key1, $key2) use ($order_array) {
 					}
 				}
 			} else {
-				if ( ( 'ubc_product' == $prodtype )  && $this->cart_item_expired($prodid,$filter_options) ) {
+				if ( ( 'ubc_product' == $prodtype )  && $this->cart_item_expired( $prodid,$filter_options ) ) {
 					$maxid = $prodid;
 				} else {
 					if ( $cartoptions['ubcepayment'] ) {
@@ -1626,7 +1623,7 @@ uksort($cart, function($key1, $key2) use ($order_array) {
 		if ( $value ) {
 			$cart_display .= '<th class="cartfield_list_col_icon">&nbsp;&nbsp;</th></tr></thead><tbody>';
 			foreach ( $value as $item ) {
-				$cart_display .= "<tr id='".($rownum-1)."' class='cartfield_list_row'>";
+				$cart_display .= "<tr id='".( $rownum - 1 )."' class='cartfield_list_row'>";
 				$colnum = 0;
 				foreach ( $item as $key => $column ) {
 					if ( ( $columns[ $colnum ]['text'] == $title_column ) && ($id_column) && ($title_column) ) {
