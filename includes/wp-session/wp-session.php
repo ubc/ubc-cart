@@ -149,7 +149,11 @@ function wp_session_cleanup() {
 					continue;
 				}
 
-				$expired_sessions[] = $expiration->option_name;
+				if ( empty( $expiration->option_name ) || "_%" === $expiration->option_name ) {
+    				continue;
+				}
+
+				$expired_sessions[] = esc_sql( $expiration->option_name );
 				$expired_sessions[] = esc_sql( "_wp_session_$session_id" );
 			}
 		}
