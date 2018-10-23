@@ -150,7 +150,7 @@ function wp_session_cleanup() {
 				}
 
 				$expired_sessions[] = $expiration->option_name;
-				$expired_sessions[] = "_wp_session_$session_id";
+				$expired_sessions[] = esc_sql( "_wp_session_$session_id" );
 			}
 		}
 
