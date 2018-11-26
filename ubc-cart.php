@@ -60,7 +60,7 @@ class UBC_CART extends GFAddOn
 		$this->includes();
 
 		//Setup Custom Post Type
-		$this-> createUBCProductsType();
+		$this->createUBCProductsType();
 
 		// load custom archive template for ubc_product
 		add_filter( 'template_include', array( &$this, 'ubc_product_template' ) );
@@ -933,6 +933,9 @@ if ( $checkout_button ) {
 		if ( is_archive() && get_post_type( ) == 'ubc_product' ) {
 			$url = plugins_url( '/assets/js/isotope.pkgd.min.js' , __FILE__ );
 			wp_enqueue_script( 'archive_page_script', $url , array( 'jquery' ), '1.0' );
+			wp_register_style( 'ubc-product-styles', UBCCART_PLUGIN_URI . '/assets/css/cart.css' );
+			wp_register_style( 'ubc-product-styles', UBCCART_PLUGIN_URI . '/assets/css/layout.css' );
+			wp_enqueue_style( 'ubc-product-styles' );
 		}
 	}
 
@@ -1786,11 +1789,11 @@ if ( $checkout_button ) {
 		// use "shopping cart" icon for post type
 		$ubcproducts->menu_icon( 'dashicons-cart' );
 		// register js for archive page
-		wp_register_script( 'ubc-product-isotope', UBCCART_PLUGIN_URI . '/assets/isotope.pkgd.min.js' );
+		// wp_register_script( 'ubc-product-isotope', UBCCART_PLUGIN_URI . '/assets/isotope.pkgd.min.js' );
 		//Load CSS for archive page
-		wp_register_style( 'ubc-product-styles', UBCCART_PLUGIN_URI . '/assets/css/cart.css' );
-		wp_register_style( 'ubc-product-styles', UBCCART_PLUGIN_URI . '/assets/css/layout.css' );
-		wp_enqueue_style( 'ubc-product-styles' );
+		// wp_register_style( 'ubc-product-styles', UBCCART_PLUGIN_URI . '/assets/css/cart.css' );
+		// wp_register_style( 'ubc-product-styles', UBCCART_PLUGIN_URI . '/assets/css/layout.css' );
+		// wp_enqueue_style( 'ubc-product-styles' );
 	}
 
 	// -- Function Name : ubc_product_enqueue_scripts
