@@ -2551,7 +2551,7 @@ if ( $checkout_button ) {
 	// -- Purpose : If field is using the merge tag
 	static function has_subtotal_merge_tag( $field ) {
 		// check if form is passed
-		if ( isset( $field['fields'] ) ) {
+		if ( isset( $field['fields'] ) && is_array( $field['fields'] ) ) {
 			$form = $field;
 			foreach ( $form['fields'] as $field ) {
 				if ( self::has_subtotal_merge_tag( $field ) ) {
