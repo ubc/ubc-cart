@@ -1516,7 +1516,7 @@ if ( $checkout_button ) {
 	// -- Purpose : Calculates the subtotal of items in the cart (item*quant)
 	// -- Returns formatted or not.
 	public function cart_calculate_total( $formatted ) {
-		if ( class_exists( 'UBC_CBM' ) ) {
+		if ( class_exists( 'UBC_CBM' ) || function_exists( 'UBC\CTLT\DPP\init' ) ) {
 			$cart_total = 0;
 			$fmt = '%.2n';
 			$cart = $this->session->get( 'ubc-cart' );
@@ -1649,7 +1649,7 @@ if ( $checkout_button ) {
 			$cart_display .= '<tr><td colspan="'.count( $columns ).'" class="empty_cell">Your Cart is empty.</td></tr>';
 		}
 		$tagline = '';
-		if ( class_exists( 'UBC_CBM' ) ) {
+		if ( class_exists( 'UBC_CBM' ) || function_exists( 'UBC\CTLT\DPP\init' ) ) {
 			$tagline = "<p style='font-size:10px;margin-top:-5px;'>Total = ".$this->cart_calculate_total( true ).' <a class="reset" style="margin-right:'.$reset_margin.'px;" onclick="deletecart()" >reset cart</a></p>';
 		} else {
 			$tagline = "<p style='font-size:10px;margin-top:-5px;'>Items = ".$this->cart_calculate_items( ).' <a class="reset" style="margin-right:'.$reset_margin.'px;" onclick="deletecart()" >reset</a></p>';
@@ -2087,7 +2087,7 @@ if ( $checkout_button ) {
 		}
 		if ( 'cart' == $field['type'] ) {
 			if ( ! GFCommon::is_form_editor() ) {
-				if ( ! class_exists( 'UBC_CBM' ) ) {
+				if ( ! class_exists( 'UBC_CBM' ) || function_exists( 'UBC\CTLT\DPP\init' ) ) {
 					$this->admin_settings->remove_price_column();
 				}
 				$value = $this->get_cart_data( $field );
@@ -2459,7 +2459,7 @@ if ( $checkout_button ) {
 	// -- Purpose : Returns a subtotal from cart
 	function get_subtotal_merge_tag_string( $form, $current_field, $filter_tags = false ) {
 		$cart_total = 0;
-		if ( class_exists( 'UBC_CBM' ) ) {
+		if ( class_exists( 'UBC_CBM' ) || function_exists( 'UBC\CTLT\DPP\init' ) ) {
 			$cart = $this->session->get( 'ubc-cart' );
 			if ( $cart ) {
 				foreach ( $cart as $cartrow => $itemrow ) {
@@ -2475,7 +2475,7 @@ if ( $checkout_button ) {
 	// -- Purpose : Returns a shipping subtotal from cart
 	function get_shipping_merge_tag_string( $form, $current_field, $filter_tags = false ) {
 		$cart_total = 0;
-		if ( class_exists( 'UBC_CBM' ) ) {
+		if ( class_exists( 'UBC_CBM' ) || function_exists( 'UBC\CTLT\DPP\init' ) ) {
 			$cart = $this->session->get( 'ubc-cart' );
 			if ( $cart ) {
 				foreach ( $cart as $cartrow => $itemrow ) {
@@ -2491,7 +2491,7 @@ if ( $checkout_button ) {
 	// -- Purpose : Returns a shippingint subtotal from cart
 	function get_shippingint_merge_tag_string( $form, $current_field, $filter_tags = false ) {
 		$cart_total = 0;
-		if ( class_exists( 'UBC_CBM' ) ) {
+		if ( class_exists( 'UBC_CBM' ) || function_exists( 'UBC\CTLT\DPP\init' ) ) {
 			$cart = $this->session->get( 'ubc-cart' );
 			if ( $cart ) {
 				foreach ( $cart as $cartrow => $itemrow ) {
