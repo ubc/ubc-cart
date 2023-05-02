@@ -2087,7 +2087,7 @@ if ( $checkout_button ) {
 		}
 		if ( 'cart' == $field['type'] ) {
 			if ( ! GFCommon::is_form_editor() ) {
-				if ( ! class_exists( 'UBC_CBM' ) || function_exists( 'UBC\CTLT\DPP\init' ) ) {
+				if ( ! class_exists( 'UBC_CBM' ) && ! function_exists( 'UBC\CTLT\DPP\init' ) ) {
 					$this->admin_settings->remove_price_column();
 				}
 				$value = $this->get_cart_data( $field );
