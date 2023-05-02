@@ -210,7 +210,7 @@ if ( class_exists( 'GFForms' ) ) {
 		public function plugin_page() {
 
 			function cart_init() {
-				if ( class_exists( 'UBC_CBM' ) ) {
+				if ( class_exists( 'UBC_CBM' ) || function_exists( 'UBC\CTLT\DPP\init' ) ) {
 					$this->add_price_column();
 				} else {
 					$this->remove_price_column();
@@ -221,7 +221,7 @@ if ( class_exists( 'GFForms' ) ) {
 			add_action( 'plugins_loaded', 'cart_init' );
 
 			//when page loaded checks for ePayments
-			if ( class_exists( 'UBC_CBM' ) ) {
+			if ( class_exists( 'UBC_CBM' ) || function_exists( 'UBC\CTLT\DPP\init' ) ) {
 				$this->add_price_column();
 			} else {
 				$this->remove_price_column();
