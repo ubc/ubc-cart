@@ -138,7 +138,7 @@ if ( class_exists( 'GFForms' ) ) {
 		// -- Purpose : Validates all keys and values of the cart options
 		public function is_cartoption_valid( $options ) {
 			//check if ALL keys are valid and they are the only ones
-			if ( count( array_diff( array_keys( $this->default_options ), array_keys( $options ) ) == 0 ) ) {
+			if ( count( array_diff( array_keys( $this->default_options ), array_keys( $options ) ) ) == 0 ) {
 				if ( self::is_columns_valid( $options['cartColumns'] ) && self::is_columns_valid( $options['cartColumnsoff'] ) && self::is_term_valid( $options['filter'] ) && self::is_formid_valid( $options['formid'] ) && self::is_cartmenu_valid( $options['showcartmenu'] ) && self::is_cartname_valid( $options['cartname'] ) && self::is_cartpid_valid( $options['cartpid'] ) && self::is_cartbtn_valid( $options['cartbtn'] ) && self::is_dandd( $options['dandd'] ) ) {
 					return true;
 				} else {

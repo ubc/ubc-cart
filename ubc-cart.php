@@ -1214,24 +1214,25 @@ if ( $checkout_button ) {
 		//$formid = $cartoptions['formid'];
 		//Set shortcode string here
 		$form_shortcode = '[gravityform id="'.$formid.'" title="true" description="true"]';
-		$page = get_page_by_title( 'Checkout' );
+		$page = get_page_by_title( 'Checkout', ARRAY_A );
 		if ( is_null( $page ) ) {
 			//create the page
 			global $user_ID;
-			$page->post_type    = 'page';
-			$page->post_content = $form_shortcode;
-			$page->post_parent  = 0;
-			$page->post_author  = $user_ID;
-			$page->post_status  = 'publish';
-			$page->post_title   = 'Checkout';
+			$page = array();
+			$page['post_type']    = 'page';
+			$page['post_content'] = $form_shortcode;
+			$page['post_parent']  = 0;
+			$page['post_author']  = $user_ID;
+			$page['post_status']  = 'publish';
+			$page['post_title']   = 'Checkout';
 			$page = apply_filters( 'ubc_cart_add_new_page', $page, 'teams' );
 			$pageid = wp_insert_post( $page );
 			if ( 0 != $pageid ) {
-				$page->post_content = $form_shortcode;
+				$page['post_content'] = $form_shortcode;
 				wp_update_post( $page );
 			}
 		} else {
-			$page->post_content = $form_shortcode;
+			$page['post_content'] = $form_shortcode;
 			wp_update_post( $page );
 		}
 	}
@@ -1292,7 +1293,7 @@ if ( $checkout_button ) {
 		$prodpost = get_post( $theid );
 		$post_meta_data = get_post_custom( $prodid );
 		if ( $prodpost && $prodpost->post_type == 'ubc_product' ) {
-			if ( array_key_exists( 'maxitems', $post_meta_data ) ) {
+			if ( is_array( $post_meta_data ) && array_key_exists( 'maxitems', $post_meta_data ) ) {
 				$maxitems = $post_meta_data['maxitems'][0];
 			} else {
 				$maxitems = '100';
@@ -1522,11 +1523,12 @@ if ( $checkout_button ) {
 			$cart = $this->session->get( 'ubc-cart' );
 			if ( $cart ) {
 				foreach ( $cart as $cartrow => $itemrow ) {
-					$cart_total = $cart_total + ($itemrow['prodprice'] * $itemrow['prodquantity']);
+					$cart_total = $cart_total + (floatval( $itemrow['prodprice'] ) * intval($itemrow['prodquantity']));
 				}
 			}
 			if ( $formatted ) {
-				return '$'.money_format( $fmt,$cart_total );
+				$formatter = new NumberFormatter( 'en_US', NumberFormatter::DECIMAL );
+				return $formatter->format( $cart_total );
 			} else {
 				return $cart_total;
 			}

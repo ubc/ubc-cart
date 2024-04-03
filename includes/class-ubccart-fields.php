@@ -41,7 +41,7 @@ final class UBCCARTCustomFields {
 		}
 		$time_adj = current_time( 'timestamp' );
 		$savedtime = get_post_meta( $post->ID, 'proddatetime', true );
-		$proddatetime = date( 'Y-m-d H:i:s' , $savedtime );
+		$proddatetime = date( 'Y-m-d H:i:s' , intval( $savedtime ) );
 		$saveddate = ( ! empty( $savedtime ) ) ? mysql2date( 'M j, Y @ H:i', $proddatetime, false ) : gmdate( 'M j, Y @ H:i', $time_adj );
 		echo '<label class="proddatetime" style="display: block;">Start: <span id="cdate"><strong> '.esc_html( $saveddate ).'</strong></span>&nbsp;<a id="cdatebtn" href="#" onclick="showdate();jQuery(\'#cproddate\').toggle(500);(jQuery(\'#cdatebtn\').text() === \'Edit\') ? jQuery(\'#cdatebtn\').text(\'Close\') : jQuery(\'#cdatebtn\').text(\'Edit\');
 ">Edit</a></span></label>';
@@ -115,7 +115,7 @@ final class UBCCARTCustomFields {
 		$time_adj = 0;//current_time('timestamp');
 		//retrieve metadata value if it exists
 		$savedtime = get_post_meta( $post->ID, 'prodxdatetime', true );
-		$prodxdatetime = date( 'Y-m-d H:i:s', $savedtime );
+		$prodxdatetime = date( 'Y-m-d H:i:s', intval( $savedtime ) );
 		$saveddate = mysql2date( 'M j, Y @ H:i', $prodxdatetime, false );
 		if ( ( 'Jan 1, 1970 @ 00:00' === $saveddate ) || ( empty( $prodxdatetime ) ) ) {
 			$saveddate = 'Never';
@@ -332,8 +332,8 @@ final class UBCCARTCustomFields {
 						update_post_meta( $post_id, $field_id, '0.0' );
 					} else {
 						update_option( 'cartcf_error_flag', false );
-						$fmt = '%.2n';
-						update_post_meta( $post_id, $field_id, money_format( $fmt,$_POST[ $field_id ] ) );
+						$formatter = new NumberFormatter( 'en_US', NumberFormatter::DECIMAL );
+						update_post_meta( $post_id, $field_id, $formatter->format( $_POST[ $field_id ] ) );
 					}
 				}
 				foreach ( $_POST[ $metabox_id . '_fields1' ] as $field_id ) {
