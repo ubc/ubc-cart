@@ -1527,8 +1527,7 @@ if ( $checkout_button ) {
 				}
 			}
 			if ( $formatted ) {
-				$formatter = new \NumberFormatter( 'en_US', \NumberFormatter::DECIMAL );
-				return $formatter->format( $cart_total );
+				return number_format( $cart_total, 2 );
 			} else {
 				return $cart_total;
 			}

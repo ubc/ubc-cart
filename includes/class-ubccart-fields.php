@@ -332,8 +332,7 @@ final class UBCCARTCustomFields {
 						update_post_meta( $post_id, $field_id, '0.0' );
 					} else {
 						update_option( 'cartcf_error_flag', false );
-						$formatter = new \NumberFormatter( 'en_US', \NumberFormatter::DECIMAL );
-						update_post_meta( $post_id, $field_id, $formatter->format( $_POST[ $field_id ] ) );
+						update_post_meta( $post_id, $field_id, number_format( $_POST[ $field_id ], 2 ) );
 					}
 				}
 				foreach ( $_POST[ $metabox_id . '_fields1' ] as $field_id ) {
